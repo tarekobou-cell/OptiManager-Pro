@@ -1,39 +1,31 @@
 import sys
 
 from PySide6.QtWidgets import QApplication
-from PySide6.QtWidgets import QLabel
-from PySide6.QtWidgets import QMainWindow
 
-from database import Base
-from database import engine
+from database import Base, engine
 
+# Chargement des modèles
 import models.utilisateur
 
+# Création automatique de l'administrateur
+from services.creation_admin import creer_admin
 
+# Fenêtre de connexion
+from ui.login import LoginWindow
+
+
+# Création des tables dans la base de données
 Base.metadata.create_all(bind=engine)
 
-
-class MainWindow(QMainWindow):
-
-    def __init__(self):
-        super().__init__()
-
-        self.setWindowTitle("OptiManager Pro")
-
-        self.resize(1000, 700)
-
-        label = QLabel(
-            "Bienvenue dans OptiManager Pro !",
-            self
-        )
-
-        label.move(40, 40)
+# Création du compte administrateur si nécessaire
+creer_admin()
 
 
+# Lancement de l'application
 app = QApplication(sys.argv)
 
-window = MainWindow()
+fenetre = LoginWindow()
 
-window.show()
+fenetre.show()
 
 sys.exit(app.exec())
