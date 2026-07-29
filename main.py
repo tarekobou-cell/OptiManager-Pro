@@ -6,6 +6,7 @@ from database import Base, engine
 
 # Chargement des modèles
 import models.utilisateur
+import models.patient
 
 # Création automatique de l'administrateur
 from services.creation_admin import creer_admin
