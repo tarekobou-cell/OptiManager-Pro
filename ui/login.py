@@ -13,21 +13,30 @@ from database import SessionLocal
 from models.utilisateur import Utilisateur
 from utils.securite import verifier_mot_de_passe
 
+from ui.dashboard import DashboardWindow
+
 
 class LoginWindow(QWidget):
 
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("Connexion - OptiManager Pro")
+        self.dashboard = None
+
+        self.setWindowTitle(
+            "Connexion - OptiManager Pro"
+        )
+
         self.resize(400, 300)
 
-        self.setup_ui()
+        self.creer_interface()
 
 
-    def setup_ui(self):
+    def creer_interface(self):
 
-        self.titre = QLabel("OptiManager Pro")
+        self.titre = QLabel(
+            "OptiManager Pro"
+        )
 
         self.login_input = QLineEdit()
         self.login_input.setPlaceholderText(
@@ -76,16 +85,22 @@ class LoginWindow(QWidget):
 
         if utilisateur:
 
-            if verifier_mot_de_passe(
+            mot_de_passe_correct = verifier_mot_de_passe(
                 password,
                 utilisateur.mot_de_passe
-            ):
+            )
 
-                QMessageBox.information(
-                    self,
-                    "Succès",
-                    "Connexion réussie"
+
+            if mot_de_passe_correct:
+
+                self.dashboard = DashboardWindow(
+                    utilisateur
                 )
+
+                self.dashboard.show()
+
+                self.close()
+
 
             else:
 
@@ -94,6 +109,7 @@ class LoginWindow(QWidget):
                     "Erreur",
                     "Mot de passe incorrect"
                 )
+
 
         else:
 
