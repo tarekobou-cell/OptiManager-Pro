@@ -1,10 +1,13 @@
 from PySide6.QtWidgets import (
     QMainWindow,
     QWidget,
-    QLabel,
     QVBoxLayout,
-    QPushButton
+    QHBoxLayout
 )
+
+from ui.components.menu_lateral import MenuLateral
+from ui.components.barre_superieure import BarreSuperieure
+from ui.components.cartes import CarteStatistique
 
 
 class DashboardWindow(QMainWindow):
@@ -18,29 +21,114 @@ class DashboardWindow(QMainWindow):
             "OptiManager Pro - Tableau de bord"
         )
 
-        self.resize(1100, 700)
+        self.resize(1200, 750)
 
         self.creer_interface()
 
 
     def creer_interface(self):
 
-        central = QWidget()
+        # Fenêtre principale
+        principal = QWidget()
 
-        layout = QVBoxLayout()
+        layout_principal = QVBoxLayout()
 
-        titre = QLabel(
-            f"Bienvenue {self.utilisateur.prenom} "
-            f"{self.utilisateur.nom}"
+
+        # Barre supérieure
+        barre = BarreSuperieure(
+            self.utilisateur
         )
 
-        bouton_deconnexion = QPushButton(
-            "Déconnexion"
+
+        # Zone centrale
+        zone_centrale = QWidget()
+
+        layout_zone = QHBoxLayout()
+
+
+        # Menu gauche
+        menu = MenuLateral()
+
+
+        # Partie droite avec les statistiques
+        contenu = QWidget()
+
+        layout_cartes = QHBoxLayout()
+
+
+        carte_patients = CarteStatistique(
+            "👤 Patients",
+            0
         )
 
-        layout.addWidget(titre)
-        layout.addWidget(bouton_deconnexion)
+        carte_ca = CarteStatistique(
+            "💰 Chiffre d'affaires",
+            "0 DA"
+        )
 
-        central.setLayout(layout)
+        carte_stock = CarteStatistique(
+            "📦 Stock faible",
+            0
+        )
 
-        self.setCentralWidget(central)
+        carte_visites = CarteStatistique(
+            "📅 Visites aujourd'hui",
+            0
+        )
+
+
+        layout_cartes.addWidget(
+            carte_patients
+        )
+
+        layout_cartes.addWidget(
+            carte_ca
+        )
+
+        layout_cartes.addWidget(
+            carte_stock
+        )
+
+        layout_cartes.addWidget(
+            carte_visites
+        )
+
+
+        contenu.setLayout(
+            layout_cartes
+        )
+
+
+        # Assemblage menu + contenu
+        layout_zone.addWidget(
+            menu
+        )
+
+        layout_zone.addWidget(
+            contenu
+        )
+
+
+        zone_centrale.setLayout(
+            layout_zone
+        )
+
+
+        # Assemblage final
+        layout_principal.addWidget(
+            barre
+        )
+
+        layout_principal.addWidget(
+            zone_centrale
+        )
+
+
+        principal.setLayout(
+            layout_principal
+        )
+
+
+        self.setCentralWidget(
+            principal
+        )
