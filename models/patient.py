@@ -4,7 +4,7 @@ from sqlalchemy import Integer, String, DateTime, Float
 from sqlalchemy.orm import Mapped, mapped_column
 
 from database import Base
-
+from sqlalchemy.orm import relationship
 
 class Patient(Base):
 
@@ -100,13 +100,34 @@ class Patient(Base):
     )
 
 
+    rendez_vous = relationship(
+        "RendezVous",
+        back_populates="patient"
+    )
+
+
     notes: Mapped[str] = mapped_column(
         String(500),
         nullable=True
+    
     )
-
 
     date_creation: Mapped[datetime] = mapped_column(
         DateTime,
         default=datetime.now
     )
+    consultations = relationship(
+    "Consultation",
+    back_populates="patient",
+    cascade="all, delete-orphan"
+)
+date_creation: Mapped[datetime] = mapped_column(
+    DateTime,
+    default=datetime.now
+)
+
+consultations = relationship(
+    "Consultation",
+    back_populates="patient",
+    cascade="all, delete-orphan"
+)

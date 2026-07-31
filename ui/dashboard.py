@@ -1,134 +1,142 @@
 from PySide6.QtWidgets import (
-    QMainWindow,
     QWidget,
+    QLabel,
+    QHBoxLayout,
     QVBoxLayout,
-    QHBoxLayout
+    QStackedWidget
 )
 
-from ui.components.menu_lateral import MenuLateral
-from ui.components.barre_superieure import BarreSuperieure
-from ui.components.cartes import CarteStatistique
+from ui.components.sidebar import Sidebar
+from ui.components.topbar import TopBar
+
+from ui.pages.patients_page import PatientsPage
 
 
-class DashboardWindow(QMainWindow):
+class DashboardWindow(QWidget):
 
     def __init__(self, utilisateur):
         super().__init__()
 
         self.utilisateur = utilisateur
 
-        self.setWindowTitle(
-            "OptiManager Pro - Tableau de bord"
-        )
-
-        self.resize(1200, 750)
+        self.setWindowTitle("OptiManager Pro")
+        self.resize(1400, 800)
 
         self.creer_interface()
 
-
     def creer_interface(self):
 
-        # Fenêtre principale
-        principal = QWidget()
+        # ==========================================
+        # Layout principal
+        # ==========================================
 
-        layout_principal = QVBoxLayout()
+        layout_principal = QHBoxLayout(self)
 
+        layout_principal.setContentsMargins(0, 0, 0, 0)
+        layout_principal.setSpacing(0)
 
-        # Barre supérieure
-        barre = BarreSuperieure(
-            self.utilisateur
+        # ==========================================
+        # Sidebar
+        # ==========================================
+
+        self.sidebar = Sidebar()
+
+        layout_principal.addWidget(self.sidebar)
+
+        # ==========================================
+        # Partie droite
+        # ==========================================
+
+        droite = QWidget()
+
+        layout_principal.addWidget(droite)
+
+        layout_droite = QVBoxLayout(droite)
+
+        layout_droite.setContentsMargins(0, 0, 0, 0)
+
+        layout_droite.setSpacing(0)
+
+        # ==========================================
+        # TopBar
+        # ==========================================
+
+        self.topbar = TopBar(self.utilisateur)
+
+        layout_droite.addWidget(self.topbar)
+
+        # ==========================================
+        # Pages
+        # ==========================================
+
+        self.stack = QStackedWidget()
+
+        layout_droite.addWidget(self.stack)
+
+        # ==========================================
+        # Dashboard
+        # ==========================================
+
+        self.page_dashboard = QWidget()
+
+        accueil = QVBoxLayout(self.page_dashboard)
+
+        titre = QLabel("Bienvenue sur OptiManager Pro")
+
+        titre.setStyleSheet("""
+            font-size:28px;
+            font-weight:bold;
+            padding:25px;
+        """)
+
+        accueil.addWidget(titre)
+
+        accueil.addStretch()
+
+        # ==========================================
+        # Patients
+        # ==========================================
+
+        self.page_patients = PatientsPage()
+
+        # ==========================================
+        # Ajout des pages
+        # ==========================================
+
+        self.stack.addWidget(self.page_dashboard)
+        self.stack.addWidget(self.page_patients)
+
+        self.stack.setCurrentWidget(
+            self.page_dashboard
         )
 
+        # ==========================================
+        # Connexion Sidebar
+        # ==========================================
 
-        # Zone centrale
-        zone_centrale = QWidget()
+        self.sidebar.connecter(self)
 
-        layout_zone = QHBoxLayout()
+    # =======================================================
+    # Navigation
+    # =======================================================
 
+    def afficher_dashboard(self):
 
-        # Menu gauche
-        menu = MenuLateral()
-
-
-        # Partie droite avec les statistiques
-        contenu = QWidget()
-
-        layout_cartes = QHBoxLayout()
-
-
-        carte_patients = CarteStatistique(
-            "👤 Patients",
-            0
+        self.topbar.titre.setText(
+            "Tableau de bord"
         )
 
-        carte_ca = CarteStatistique(
-            "💰 Chiffre d'affaires",
-            "0 DA"
+        self.stack.setCurrentWidget(
+            self.page_dashboard
         )
 
-        carte_stock = CarteStatistique(
-            "📦 Stock faible",
-            0
+    def afficher_patients(self):
+
+        self.topbar.titre.setText(
+            "Patients"
         )
 
-        carte_visites = CarteStatistique(
-            "📅 Visites aujourd'hui",
-            0
-        )
-
-
-        layout_cartes.addWidget(
-            carte_patients
-        )
-
-        layout_cartes.addWidget(
-            carte_ca
-        )
-
-        layout_cartes.addWidget(
-            carte_stock
-        )
-
-        layout_cartes.addWidget(
-            carte_visites
-        )
-
-
-        contenu.setLayout(
-            layout_cartes
-        )
-
-
-        # Assemblage menu + contenu
-        layout_zone.addWidget(
-            menu
-        )
-
-        layout_zone.addWidget(
-            contenu
-        )
-
-
-        zone_centrale.setLayout(
-            layout_zone
-        )
-
-
-        # Assemblage final
-        layout_principal.addWidget(
-            barre
-        )
-
-        layout_principal.addWidget(
-            zone_centrale
-        )
-
-
-        principal.setLayout(
-            layout_principal
-        )
-
-
-        self.setCentralWidget(
-            principal
+       
+        self.stack.setCurrentWidget(
+            self.page_patients
         )

@@ -3,60 +3,211 @@ from database import SessionLocal
 from models.patient import Patient
 
 
-def ajouter_patient(
+# ==================================================
+# Liste des patients
+# ==================================================
+
+def liste_patients():
+
+    db = SessionLocal()
+
+    try:
+
+        return (
+            db.query(Patient)
+            .order_by(Patient.nom)
+            .all()
+        )
+
+    finally:
+
+        db.close()
+
+
+# ==================================================
+# Recherche
+# ==================================================
+
+def rechercher_patients(texte):
+
+    db = SessionLocal()
+
+    try:
+
+        return (
+            db.query(Patient)
+            .filter(
+                Patient.nom.ilike(f"%{texte}%")
+                |
+                Patient.prenom.ilike(f"%{texte}%")
+                |
+                Patient.telephone.ilike(f"%{texte}%")
+            )
+            .order_by(Patient.nom)
+            .all()
+        )
+
+    finally:
+
+        db.close()
+
+
+# ==================================================
+# Ajouter un patient
+# ==================================================
+
+def creer_patient(
+
     nom,
     prenom,
     telephone,
-    date_naissance,
-    adresse,
-    date_visite,
-    od_sphere,
-    od_cylindre,
-    od_axe,
-    og_sphere,
-    og_cylindre,
-    og_axe,
-    type_verre,
-    traitement,
-    notes
+    date_naissance="",
+    adresse="",
+    notes=""
+
 ):
 
     db = SessionLocal()
 
+    try:
 
-    patient = Patient(
+        patient = Patient(
 
-        nom=nom,
-        prenom=prenom,
-        telephone=telephone,
+            nom=nom,
 
-        date_naissance=date_naissance,
-        adresse=adresse,
+            prenom=prenom,
 
-        date_derniere_visite=date_visite,
+            telephone=telephone,
 
-        od_sphere=od_sphere,
-        od_cylindre=od_cylindre,
-        od_axe=od_axe,
+            date_naissance=date_naissance,
 
-        og_sphere=og_sphere,
-        og_cylindre=og_cylindre,
-        og_axe=og_axe,
+            adresse=adresse,
 
-        type_verre=type_verre,
-        traitement_verre=traitement,
+            notes=notes
 
-        notes=notes
-    )
+        )
+
+        db.add(patient)
+
+        db.commit()
+
+        db.refresh(patient)
+
+        return patient
+
+    except Exception:
+
+        db.rollback()
+
+        raise
+
+    finally:
+
+        db.close()
+
+# ==================================================
+# Détail d'un patient
+# ==================================================
+
+def detail_patient(patient_id):
+
+    db = SessionLocal()
+
+    try:
+
+        return (
+            db.query(Patient)
+            .filter(Patient.id == patient_id)
+            .first()
+        )
+
+    finally:
+
+        db.close()
+# ==================================================
+# Modifier
+# ==================================================
+
+def modifier_patient(
+
+    patient_id,
+
+    nom,
+    prenom,
+    telephone,
+
+    date_naissance,
+    adresse,
+    notes
+
+):
+
+    db = SessionLocal()
+
+    try:
+
+        patient = db.query(Patient).filter(
+            Patient.id == patient_id
+        ).first()
+
+        if patient is None:
+
+            return None
+
+        patient.nom = nom
+        patient.prenom = prenom
+        patient.telephone = telephone
+        patient.date_naissance = date_naissance
+        patient.adresse = adresse
+        patient.notes = notes
+
+        db.commit()
+
+        db.refresh(patient)
+
+        return patient
+
+    except Exception:
+
+        db.rollback()
+
+        raise
+
+    finally:
+
+        db.close()
 
 
-    db.add(patient)
+# ==================================================
+# Supprimer
+# ==================================================
 
-    db.commit()
+def supprimer_patient(patient_id):
 
-    db.refresh(patient)
+    db = SessionLocal()
 
-    db.close()
+    try:
 
+        patient = db.query(Patient).filter(
+            Patient.id == patient_id
+        ).first()
 
-    return patient
+        if patient is None:
+
+            return False
+
+        db.delete(patient)
+
+        db.commit()
+
+        return True
+
+    except Exception:
+
+        db.rollback()
+
+        raise
+
+    finally:
+
+        db.close()
