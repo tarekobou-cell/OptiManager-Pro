@@ -15,7 +15,7 @@ def liste_patients():
 
         return (
             db.query(Patient)
-            .order_by(Patient.nom)
+            .order_by(Patient.nom.asc())
             .all()
         )
 
@@ -43,7 +43,7 @@ def rechercher_patients(texte):
                 |
                 Patient.telephone.ilike(f"%{texte}%")
             )
-            .order_by(Patient.nom)
+            .order_by(Patient.nom.asc())
             .all()
         )
 
@@ -53,7 +53,28 @@ def rechercher_patients(texte):
 
 
 # ==================================================
-# Ajouter un patient
+# Détail
+# ==================================================
+
+def detail_patient(patient_id):
+
+    db = SessionLocal()
+
+    try:
+
+        return (
+            db.query(Patient)
+            .filter(Patient.id == patient_id)
+            .first()
+        )
+
+    finally:
+
+        db.close()
+
+
+# ==================================================
+# Création
 # ==================================================
 
 def creer_patient(
@@ -73,17 +94,17 @@ def creer_patient(
 
         patient = Patient(
 
-            nom=nom,
+            nom=nom.strip(),
 
-            prenom=prenom,
+            prenom=prenom.strip(),
 
-            telephone=telephone,
+            telephone=telephone.strip(),
 
-            date_naissance=date_naissance,
+            date_naissance=date_naissance.strip(),
 
-            adresse=adresse,
+            adresse=adresse.strip(),
 
-            notes=notes
+            notes=notes.strip()
 
         )
 
@@ -105,27 +126,9 @@ def creer_patient(
 
         db.close()
 
+
 # ==================================================
-# Détail d'un patient
-# ==================================================
-
-def detail_patient(patient_id):
-
-    db = SessionLocal()
-
-    try:
-
-        return (
-            db.query(Patient)
-            .filter(Patient.id == patient_id)
-            .first()
-        )
-
-    finally:
-
-        db.close()
-# ==================================================
-# Modifier
+# Modification
 # ==================================================
 
 def modifier_patient(
@@ -146,20 +149,22 @@ def modifier_patient(
 
     try:
 
-        patient = db.query(Patient).filter(
-            Patient.id == patient_id
-        ).first()
+        patient = (
+            db.query(Patient)
+            .filter(Patient.id == patient_id)
+            .first()
+        )
 
         if patient is None:
 
             return None
 
-        patient.nom = nom
-        patient.prenom = prenom
-        patient.telephone = telephone
-        patient.date_naissance = date_naissance
-        patient.adresse = adresse
-        patient.notes = notes
+        patient.nom = nom.strip()
+        patient.prenom = prenom.strip()
+        patient.telephone = telephone.strip()
+        patient.date_naissance = date_naissance.strip()
+        patient.adresse = adresse.strip()
+        patient.notes = notes.strip()
 
         db.commit()
 
@@ -179,7 +184,7 @@ def modifier_patient(
 
 
 # ==================================================
-# Supprimer
+# Suppression
 # ==================================================
 
 def supprimer_patient(patient_id):
@@ -188,9 +193,11 @@ def supprimer_patient(patient_id):
 
     try:
 
-        patient = db.query(Patient).filter(
-            Patient.id == patient_id
-        ).first()
+        patient = (
+            db.query(Patient)
+            .filter(Patient.id == patient_id)
+            .first()
+        )
 
         if patient is None:
 
