@@ -5,13 +5,13 @@ from sqlalchemy import (
     String,
     DateTime,
     Float,
-    Boolean
+    Boolean,
 )
 
 from sqlalchemy.orm import (
     Mapped,
     mapped_column,
-    relationship
+    relationship,
 )
 
 from database import Base
@@ -21,130 +21,142 @@ class Patient(Base):
 
     __tablename__ = "patients"
 
-    # ==========================
+    # ==================================================
     # Identité
-    # ==========================
+    # ==================================================
 
     id: Mapped[int] = mapped_column(
         Integer,
         primary_key=True,
-        autoincrement=True
+        autoincrement=True,
     )
 
     nom: Mapped[str] = mapped_column(
         String(100),
         nullable=False,
-        index=True
+        index=True,
     )
 
     prenom: Mapped[str] = mapped_column(
         String(100),
-        nullable=False
+        nullable=False,
     )
 
     telephone: Mapped[str] = mapped_column(
         String(20),
         nullable=False,
-        index=True
+        index=True,
     )
 
     date_naissance: Mapped[str] = mapped_column(
         String(20),
-        nullable=True
+        nullable=True,
     )
 
     adresse: Mapped[str] = mapped_column(
         String(255),
-        nullable=True
+        nullable=True,
     )
+
+    # ==================================================
+    # Dernière visite
+    # ==================================================
 
     date_derniere_visite: Mapped[str] = mapped_column(
         String(20),
-        nullable=True
+        nullable=True,
     )
 
-    # ==========================
-    # Correction
-    # ==========================
+    # ==================================================
+    # Correction Œil droit
+    # ==================================================
 
     od_sphere: Mapped[float] = mapped_column(
         Float,
-        nullable=True
+        nullable=True,
     )
 
     od_cylindre: Mapped[float] = mapped_column(
         Float,
-        nullable=True
+        nullable=True,
     )
 
     od_axe: Mapped[int] = mapped_column(
         Integer,
-        nullable=True
+        nullable=True,
     )
+
+    # ==================================================
+    # Correction Œil gauche
+    # ==================================================
 
     og_sphere: Mapped[float] = mapped_column(
         Float,
-        nullable=True
+        nullable=True,
     )
 
     og_cylindre: Mapped[float] = mapped_column(
         Float,
-        nullable=True
+        nullable=True,
     )
 
     og_axe: Mapped[int] = mapped_column(
         Integer,
-        nullable=True
+        nullable=True,
     )
+
+    # ==================================================
+    # Verres
+    # ==================================================
 
     type_verre: Mapped[str] = mapped_column(
         String(100),
-        nullable=True
+        nullable=True,
     )
 
     traitement_verre: Mapped[str] = mapped_column(
         String(100),
-        nullable=True
+        nullable=True,
     )
+
+    # ==================================================
+    # Informations complémentaires
+    # ==================================================
 
     notes: Mapped[str] = mapped_column(
         String(500),
-        nullable=True
+        nullable=True,
     )
-
-    # ==========================
-    # Audit
-    # ==========================
 
     actif: Mapped[bool] = mapped_column(
         Boolean,
         default=True,
-        nullable=False
+        nullable=False,
     )
 
     date_creation: Mapped[datetime] = mapped_column(
         DateTime,
         default=datetime.now,
-        nullable=False
+        nullable=False,
     )
 
     date_modification: Mapped[datetime] = mapped_column(
         DateTime,
         default=datetime.now,
         onupdate=datetime.now,
-        nullable=False
+        nullable=False,
     )
 
-    # ==========================
+    # ==================================================
     # Relations
-    # ==========================
+    # ==================================================
 
     consultations = relationship(
         "Consultation",
-        back_populates="patient"
+        back_populates="patient",
     )
 
     rendez_vous = relationship(
         "RendezVous",
-        back_populates="patient"
+        back_populates="patient",
     )
