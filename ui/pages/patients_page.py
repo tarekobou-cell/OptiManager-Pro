@@ -15,7 +15,8 @@ from PySide6.QtWidgets import (
 from services.patient_service import (
     liste_patients,
     rechercher_patients,
-    detail_patient
+    detail_patient,
+    supprimer_patient
 )
 
 from ui.dialogs.patient_dialog import PatientDialog
@@ -30,14 +31,16 @@ class PatientsPage(QWidget):
         self.charger_patients()
 
     # =====================================================
+    # Interface
+    # =====================================================
 
     def creer_interface(self):
 
         layout = QVBoxLayout(self)
 
-        # -------------------------
+        # -----------------------------------
         # Barre supérieure
-        # -------------------------
+        # -----------------------------------
 
         barre = QHBoxLayout()
 
@@ -49,6 +52,7 @@ class PatientsPage(QWidget):
         """)
 
         barre.addWidget(titre)
+
         barre.addStretch()
 
         self.btn_nouveau = QPushButton("➕ Nouveau")
@@ -61,9 +65,9 @@ class PatientsPage(QWidget):
 
         layout.addLayout(barre)
 
-        # -------------------------
+        # -----------------------------------
         # Recherche
-        # -------------------------
+        # -----------------------------------
 
         self.recherche = QLineEdit()
 
@@ -73,9 +77,9 @@ class PatientsPage(QWidget):
 
         layout.addWidget(self.recherche)
 
-        # -------------------------
+        # -----------------------------------
         # Tableau
-        # -------------------------
+        # -----------------------------------
 
         self.table = QTableWidget()
 
@@ -112,9 +116,9 @@ class PatientsPage(QWidget):
 
         layout.addWidget(self.table)
 
-        # -------------------------
+        # -----------------------------------
         # Connexions
-        # -------------------------
+        # -----------------------------------
 
         self.btn_nouveau.clicked.connect(
             self.nouveau_patient
@@ -122,6 +126,10 @@ class PatientsPage(QWidget):
 
         self.btn_modifier.clicked.connect(
             self.modifier_patient
+        )
+
+        self.btn_supprimer.clicked.connect(
+            self.supprimer_patient
         )
 
         self.table.doubleClicked.connect(
@@ -132,6 +140,8 @@ class PatientsPage(QWidget):
             self.rechercher
         )
 
+    # =====================================================
+    # Chargement
     # =====================================================
 
     def charger_patients(self):
@@ -181,9 +191,12 @@ class PatientsPage(QWidget):
             self.table.setItem(
                 ligne,
                 5,
-                QTableWidgetItem(patient.date_derniere_visite or "")
+                QTableWidgetItem(
+                    patient.date_derniere_visite or ""
+                )
             )
-
+    # =====================================================
+    # Patient sélectionné
     # =====================================================
 
     def patient_selectionne(self):
@@ -191,13 +204,17 @@ class PatientsPage(QWidget):
         ligne = self.table.currentRow()
 
         if ligne < 0:
-
             return None
 
         return int(
-            self.table.item(ligne, 0).text()
+            self.table.item(
+                ligne,
+                0
+            ).text()
         )
 
+    # =====================================================
+    # Nouveau patient
     # =====================================================
 
     def nouveau_patient(self):
@@ -208,6 +225,8 @@ class PatientsPage(QWidget):
 
             self.charger_patients()
 
+    # =====================================================
+    # Modifier
     # =====================================================
 
     def modifier_patient(self):
@@ -226,6 +245,18 @@ class PatientsPage(QWidget):
 
         patient = detail_patient(patient_id)
 
+        if patient is None:
+
+            QMessageBox.warning(
+                self,
+                "Erreur",
+                "Patient introuvable."
+            )
+
+            self.charger_patients()
+
+            return
+
         dialog = PatientDialog(
             patient=patient,
             parent=self
@@ -235,6 +266,8 @@ class PatientsPage(QWidget):
 
             self.charger_patients()
 
+    # =====================================================
+    # Recherche
     # =====================================================
 
     def rechercher(self):
@@ -250,3 +283,61 @@ class PatientsPage(QWidget):
         self.afficher_patients(
             rechercher_patients(texte)
         )
+    # =====================================================
+    # Supprimer
+    # =====================================================
+
+    def supprimer_patient(self):
+
+        patient_id = self.patient_selectionne()
+
+        if patient_id is None:
+
+            QMessageBox.information(
+                self,
+                "Information",
+                "Veuillez sélectionner un patient."
+            )
+
+            return
+
+        reponse = QMessageBox.question(
+            self,
+            "Confirmation",
+            "Voulez-vous vraiment supprimer ce patient ?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No
+        )
+
+        if reponse != QMessageBox.Yes:
+            return
+
+        try:
+
+            resultat = supprimer_patient(patient_id)
+
+            if resultat:
+
+                QMessageBox.information(
+                    self,
+                    "Succès",
+                    "Le patient a été supprimé."
+                )
+
+                self.charger_patients()
+
+            else:
+
+                QMessageBox.warning(
+                    self,
+                    "Erreur",
+                    "Patient introuvable."
+                )
+
+        except Exception as e:
+
+            QMessageBox.critical(
+                self,
+                "Erreur",
+                f"Impossible de supprimer le patient.\n\n{e}"
+            )
