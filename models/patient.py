@@ -1,11 +1,18 @@
-from datetime import datetime
+"""
+=========================================================
+OptiManager Pro
+---------------------------------------------------------
+Fichier : patient.py
+Description : Modèle Patient
+=========================================================
+"""
+
+from datetime import date
 
 from sqlalchemy import (
-    Integer,
-    String,
-    DateTime,
-    Float,
     Boolean,
+    Date,
+    String,
 )
 
 from sqlalchemy.orm import (
@@ -14,27 +21,27 @@ from sqlalchemy.orm import (
     relationship,
 )
 
-from database import Base
+from models.base import BaseModel
 
 
-class Patient(Base):
+class Patient(BaseModel):
+    """
+    Dossier administratif d'un patient.
+    """
 
     __tablename__ = "patients"
 
-    # ==================================================
-    # Identité
-    # ==================================================
-
-    id: Mapped[int] = mapped_column(
-        Integer,
-        primary_key=True,
-        autoincrement=True,
+    numero_dossier: Mapped[str] = mapped_column(
+        String(20),
+        unique=True,
+        index=True,
+        nullable=False,
     )
 
     nom: Mapped[str] = mapped_column(
         String(100),
-        nullable=False,
         index=True,
+        nullable=False,
     )
 
     prenom: Mapped[str] = mapped_column(
@@ -44,87 +51,33 @@ class Patient(Base):
 
     telephone: Mapped[str] = mapped_column(
         String(20),
-        nullable=False,
         index=True,
+        nullable=False,
     )
 
-    date_naissance: Mapped[str] = mapped_column(
-        String(20),
+    date_naissance: Mapped[date | None] = mapped_column(
+        Date,
         nullable=True,
     )
 
-    adresse: Mapped[str] = mapped_column(
+    adresse: Mapped[str | None] = mapped_column(
         String(255),
         nullable=True,
     )
 
-    # ==================================================
-    # Dernière visite
-    # ==================================================
-
-    date_derniere_visite: Mapped[str] = mapped_column(
-        String(20),
+    email: Mapped[str | None] = mapped_column(
+        String(150),
+        index=True,
         nullable=True,
     )
 
-    # ==================================================
-    # Correction Œil droit
-    # ==================================================
-
-    od_sphere: Mapped[float] = mapped_column(
-        Float,
-        nullable=True,
-    )
-
-    od_cylindre: Mapped[float] = mapped_column(
-        Float,
-        nullable=True,
-    )
-
-    od_axe: Mapped[int] = mapped_column(
-        Integer,
-        nullable=True,
-    )
-
-    # ==================================================
-    # Correction Œil gauche
-    # ==================================================
-
-    og_sphere: Mapped[float] = mapped_column(
-        Float,
-        nullable=True,
-    )
-
-    og_cylindre: Mapped[float] = mapped_column(
-        Float,
-        nullable=True,
-    )
-
-    og_axe: Mapped[int] = mapped_column(
-        Integer,
-        nullable=True,
-    )
-
-    # ==================================================
-    # Verres
-    # ==================================================
-
-    type_verre: Mapped[str] = mapped_column(
+    profession: Mapped[str | None] = mapped_column(
         String(100),
         nullable=True,
     )
 
-    traitement_verre: Mapped[str] = mapped_column(
-        String(100),
-        nullable=True,
-    )
-
-    # ==================================================
-    # Informations complémentaires
-    # ==================================================
-
-    notes: Mapped[str] = mapped_column(
-        String(500),
+    notes: Mapped[str | None] = mapped_column(
+        String(1000),
         nullable=True,
     )
 
@@ -134,29 +87,30 @@ class Patient(Base):
         nullable=False,
     )
 
-    date_creation: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=datetime.now,
-        nullable=False,
-    )
-
-    date_modification: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=datetime.now,
-        onupdate=datetime.now,
-        nullable=False,
-    )
-
-    # ==================================================
+    # =====================================================
     # Relations
-    # ==================================================
+    # =====================================================
 
     consultations = relationship(
         "Consultation",
         back_populates="patient",
+        cascade="all, delete-orphan",
     )
 
     rendez_vous = relationship(
         "RendezVous",
         back_populates="patient",
+        cascade="all, delete-orphan",
+    )
+
+    ventes = relationship(
+        "Vente",
+        back_populates="patient",
+        cascade="all, delete-orphan",
+    )
+
+    reparations = relationship(
+        "Reparation",
+        back_populates="patient",
+        cascade="all, delete-orphan",
     )

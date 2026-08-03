@@ -1,45 +1,74 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
-from sqlalchemy.orm import relationship
+"""
+=========================================================
+OptiManager Pro
+---------------------------------------------------------
+Fichier : rendez_vous.py
+Description : Modèle Rendez-vous
+Auteur : Mohamed Tarek & ChatGPT
+Version : 2.0.0
+=========================================================
+"""
 
-from database import Base
+from datetime import datetime
+
+from sqlalchemy import (
+    DateTime,
+    Enum,
+    ForeignKey,
+    String,
+    Text,
+)
+
+from sqlalchemy.orm import (
+    Mapped,
+    mapped_column,
+    relationship,
+)
+
+from config.constantes import StatutRendezVous
+from models.base import BaseModel
 
 
-class RendezVous(Base):
+class RendezVous(BaseModel):
+    """
+    Rendez-vous d'un patient.
+    """
 
     __tablename__ = "rendez_vous"
 
-
-    id = Column(
-        Integer,
-        primary_key=True
+    patient_id: Mapped[int] = mapped_column(
+        ForeignKey("patients.id"),
+        nullable=False,
+        index=True,
     )
 
-
-    patient_id = Column(
-        Integer,
-        ForeignKey("patients.id")
-    )
-
-
-    date_heure = Column(
+    date_heure: Mapped[datetime] = mapped_column(
         DateTime,
-        nullable=False
+        nullable=False,
+        index=True,
     )
 
-
-    motif = Column(
-        String,
-        nullable=False
+    motif: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
     )
 
-
-    statut = Column(
-        String,
-        default="Prévu"
+    commentaire: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
     )
 
+    statut: Mapped[StatutRendezVous] = mapped_column(
+        Enum(StatutRendezVous),
+        default=StatutRendezVous.PREVU,
+        nullable=False,
+    )
+
+    # =====================================================
+    # Relations
+    # =====================================================
 
     patient = relationship(
         "Patient",
-        back_populates="rendez_vous"
+        back_populates="rendez_vous",
     )

@@ -1,89 +1,83 @@
+"""
+=========================================================
+OptiManager Pro
+---------------------------------------------------------
+Fichier : utilisateur.py
+Description : Modèle Utilisateur
+=========================================================
+"""
+
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Integer, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import (
+    Boolean,
+    DateTime,
+    Enum,
+    String,
+)
 
-from database import Base
+from sqlalchemy.orm import (
+    Mapped,
+    mapped_column,
+    relationship,
+)
+
+from config.constantes import RoleUtilisateur
+from models.base import BaseModel
 
 
-class Utilisateur(Base):
+class Utilisateur(BaseModel):
+    """
+    Utilisateur du logiciel.
+    """
 
     __tablename__ = "utilisateurs"
 
-    # ==========================
-    # Clé primaire
-    # ==========================
-
-    id: Mapped[int] = mapped_column(
-        Integer,
-        primary_key=True,
-        autoincrement=True
-    )
-
-    # ==========================
-    # Informations personnelles
-    # ==========================
-
     nom: Mapped[str] = mapped_column(
         String(100),
-        nullable=False
+        nullable=False,
+        index=True,
     )
 
     prenom: Mapped[str] = mapped_column(
         String(100),
-        nullable=False
+        nullable=False,
     )
-
-    # ==========================
-    # Authentification
-    # ==========================
 
     login: Mapped[str] = mapped_column(
         String(50),
         unique=True,
         index=True,
-        nullable=False
+        nullable=False,
     )
 
     mot_de_passe: Mapped[str] = mapped_column(
         String(255),
-        nullable=False
+        nullable=False,
     )
 
-    # ==========================
-    # Autorisations
-    # ==========================
-
-    role: Mapped[str] = mapped_column(
-        String(30),
+    role: Mapped[RoleUtilisateur] = mapped_column(
+        Enum(RoleUtilisateur),
         nullable=False,
-        default="OPTICIEN"
     )
 
     actif: Mapped[bool] = mapped_column(
         Boolean,
         default=True,
-        nullable=False
+        nullable=False,
     )
 
-    # ==========================
-    # Audit
-    # ==========================
-
-    date_creation: Mapped[datetime] = mapped_column(
+    derniere_connexion: Mapped[datetime | None] = mapped_column(
         DateTime,
-        default=datetime.now,
-        nullable=False
+        nullable=True,
     )
 
-    date_modification: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=datetime.now,
-        onupdate=datetime.now,
-        nullable=False
+    consultations = relationship(
+        "Consultation",
+        back_populates="utilisateur",
     )
 
-    dernier_login: Mapped[datetime | None] = mapped_column(
-        DateTime,
-        nullable=True
+    ventes = relationship(
+        "Vente",
+        back_populates="utilisateur",
     )

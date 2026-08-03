@@ -1,210 +1,249 @@
-from database import SessionLocal
+"""
+=========================================================
+OptiManager Pro
+---------------------------------------------------------
+Fichier : consultation_service.py
+Description : Service métier des consultations.
+Auteur : Mohamed Tarek & ChatGPT
+Version : 1.0.0
+=========================================================
+"""
+
+from sqlalchemy.orm import Session
 
 from models.consultation import Consultation
+from repositories.consultation_repository import (
+    ConsultationRepository,
+)
 
 
-# ==================================================
-# Liste des consultations
-# ==================================================
+class ConsultationService:
+    """
+    Service métier des consultations.
+    """
 
-def liste_consultations():
+    def __init__(
+        self,
+        session: Session,
+    ) -> None:
 
-    db = SessionLocal()
-
-    try:
-
-        return (
-            db.query(Consultation)
-            .order_by(
-                Consultation.date_consultation.desc()
-            )
-            .all()
+        self.repository = ConsultationRepository(
+            session
         )
 
-    finally:
+    # =====================================================
+    # CRUD
+    # =====================================================
 
-        db.close()
+    def creer(
+        self,
+        consultation: Consultation,
+    ) -> Consultation:
+        """
+        Crée une consultation.
+        """
 
-
-# ==================================================
-# Liste des consultations d'un patient
-# ==================================================
-
-def consultations_patient(patient_id):
-
-    db = SessionLocal()
-
-    try:
-
-        return (
-            db.query(Consultation)
-            .filter(
-                Consultation.patient_id == patient_id
-            )
-            .order_by(
-                Consultation.date_consultation.desc()
-            )
-            .all()
+        return self.repository.ajouter(
+            consultation
         )
 
-    finally:
+    def modifier(
+        self,
+        consultation: Consultation,
+    ) -> None:
+        """
+        Enregistre les modifications.
+        """
 
-        db.close()
+        self.repository.sauvegarder()
 
+    def supprimer(
+        self,
+        consultation: Consultation,
+    ) -> None:
+        """
+        Supprime une consultation.
+        """
 
-# ==================================================
-# Détail d'une consultation
-# ==================================================
+        self.repository.supprimer(
+            consultation
+        )
+    # =====================================================
+    # Recherches
+    # =====================================================
 
-def detail_consultation(consultation_id):
+    def rechercher_par_id(
+        self,
+        identifiant: int,
+    ) -> Consultation | None:
+        """
+        Recherche une consultation par son identifiant.
+        """
 
-    db = SessionLocal()
+        return self.repository.rechercher_par_id(
+            identifiant
+        )
 
-    try:
+    def rechercher_toutes(
+        self,
+    ) -> list[Consultation]:
+        """
+        Retourne toutes les consultations.
+        """
 
-        return (
-            db.query(Consultation)
-            .filter(
-                Consultation.id == consultation_id
+        return self.repository.rechercher_toutes()
+
+    def rechercher_par_patient(
+        self,
+        patient_id: int,
+    ) -> list[Consultation]:
+        """
+        Retourne l'historique des consultations
+        d'un patient.
+        """
+
+        return self.repository.rechercher_par_patient(
+            patient_id
+        )
+
+    def derniere_consultation(
+        self,
+        patient_id: int,
+    ) -> Consultation | None:
+        """
+        Retourne la dernière consultation
+        d'un patient.
+        """
+
+        return self.repository.derniere_consultation(
+            patient_id
+        )
+
+    def rechercher_par_date(
+        self,
+        date_consultation,
+    ) -> list[Consultation]:
+        """
+        Recherche les consultations
+        d'une date donnée.
+        """
+
+        return self.repository.rechercher_par_date(
+            date_consultation
+        )
+
+    def rechercher_par_periode(
+        self,
+        date_debut,
+        date_fin,
+    ) -> list[Consultation]:
+        """
+        Recherche les consultations
+        comprises entre deux dates.
+        """
+
+        return self.repository.rechercher_par_periode(
+            date_debut,
+            date_fin,
+        )
+    # =====================================================
+    # Statistiques
+    # =====================================================
+
+    def compter(self) -> int:
+        """
+        Retourne le nombre total
+        de consultations.
+        """
+
+        return self.repository.compter()
+
+    def compter_par_patient(
+        self,
+        patient_id: int,
+    ) -> int:
+        """
+        Retourne le nombre de consultations
+        d'un patient.
+        """
+
+        return self.repository.compter_par_patient(
+            patient_id
+        )
+
+    def consultations_du_jour(
+        self,
+        date_jour,
+    ) -> list[Consultation]:
+        """
+        Retourne les consultations du jour.
+        """
+
+        return self.repository.consultations_du_jour(
+            date_jour
+        )
+
+    # =====================================================
+    # Validation métier
+    # =====================================================
+
+    def verifier_consultation(
+        self,
+        consultation: Consultation,
+    ) -> None:
+        """
+        Vérifie la cohérence des données
+        d'une consultation.
+        """
+
+        if consultation.patient_id is None:
+
+            raise ValueError(
+                "Le patient est obligatoire."
             )
-            .first()
-        )
 
-    finally:
+        if consultation.date_consultation is None:
 
-        db.close()
-
-
-# ==================================================
-# Création
-# ==================================================
-
-def creer_consultation(
-
-    patient_id,
-    motif="",
-    observations=""
-
-):
-
-    db = SessionLocal()
-
-    try:
-
-        consultation = Consultation(
-
-            patient_id=patient_id,
-
-            motif=motif.strip(),
-
-            observations=observations.strip()
-
-        )
-
-        db.add(consultation)
-
-        db.commit()
-
-        db.refresh(consultation)
-
-        return consultation
-
-    except Exception:
-
-        db.rollback()
-
-        raise
-
-    finally:
-
-        db.close()
-
-
-# ==================================================
-# Modification
-# ==================================================
-
-def modifier_consultation(
-
-    consultation_id,
-
-    motif,
-
-    observations
-
-):
-
-    db = SessionLocal()
-
-    try:
-
-        consultation = (
-            db.query(Consultation)
-            .filter(
-                Consultation.id == consultation_id
+            raise ValueError(
+                "La date de consultation est obligatoire."
             )
-            .first()
+
+    # =====================================================
+    # Création sécurisée
+    # =====================================================
+
+    def creer_consultation(
+        self,
+        consultation: Consultation,
+    ) -> Consultation:
+        """
+        Valide puis crée une consultation.
+        """
+
+        self.verifier_consultation(
+            consultation
         )
 
-        if consultation is None:
-
-            return None
-
-        consultation.motif = motif.strip()
-
-        consultation.observations = observations.strip()
-
-        db.commit()
-
-        db.refresh(consultation)
-
-        return consultation
-
-    except Exception:
-
-        db.rollback()
-
-        raise
-
-    finally:
-
-        db.close()
-
-
-# ==================================================
-# Suppression
-# ==================================================
-
-def supprimer_consultation(consultation_id):
-
-    db = SessionLocal()
-
-    try:
-
-        consultation = (
-            db.query(Consultation)
-            .filter(
-                Consultation.id == consultation_id
-            )
-            .first()
+        return self.creer(
+            consultation
         )
 
-        if consultation is None:
+    # =====================================================
+    # Modification sécurisée
+    # =====================================================
 
-            return False
+    def modifier_consultation(
+        self,
+        consultation: Consultation,
+    ) -> None:
+        """
+        Valide puis enregistre les modifications.
+        """
 
-        db.delete(consultation)
+        self.verifier_consultation(
+            consultation
+        )
 
-        db.commit()
-
-        return True
-
-    except Exception:
-
-        db.rollback()
-
-        raise
-
-    finally:
-
-        db.close()
+        self.modifier(
+            consultation
+        )

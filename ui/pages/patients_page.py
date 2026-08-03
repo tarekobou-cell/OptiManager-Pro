@@ -1,73 +1,97 @@
+"""
+=========================================================
+OptiManager Pro
+---------------------------------------------------------
+Fichier : patients_page.py
+Description : Gestion des patients.
+Auteur : Mohamed Tarek & ChatGPT
+Version : 3.0.0
+=========================================================
+"""
+
 from PySide6.QtWidgets import (
-    QWidget,
-    QVBoxLayout,
+    QAbstractItemView,
+    QHeaderView,
     QHBoxLayout,
     QLabel,
-    QPushButton,
     QLineEdit,
+    QMessageBox,
+    QPushButton,
     QTableWidget,
     QTableWidgetItem,
-    QHeaderView,
-    QAbstractItemView,
-    QMessageBox
 )
 
-from services.patient_service import (
-    liste_patients,
-    rechercher_patients,
-    detail_patient,
-    supprimer_patient
+from controllers.patient_controller import (
+    PatientController,
 )
 
-from ui.dialogs.patient_dialog import PatientDialog
+from database import SessionLocal
+
+from ui.components.base_window import BaseWindow
+from ui.dialogs.patient_dialog import (
+    PatientDialog,
+)
 
 
-class PatientsPage(QWidget):
+class PatientsPage(BaseWindow):
+    """
+    Gestion des patients.
+    """
 
     def __init__(self):
-        super().__init__()
 
-        self.creer_interface()
+        super().__init__(
+            "Gestion des patients"
+        )
+
+        self.session = SessionLocal()
+
+        self.controller = PatientController(
+            self.session
+        )
+
+        self.construire_interface()
+
+        self.connecter_signaux()
+
         self.charger_patients()
 
     # =====================================================
     # Interface
     # =====================================================
 
-    def creer_interface(self):
+    def construire_interface(self):
 
-        layout = QVBoxLayout(self)
+        titre = QLabel(
+            "👤 Gestion des patients"
+        )
 
-        # -----------------------------------
-        # Barre supérieure
-        # -----------------------------------
+        titre.setStyleSheet(
+            """
+            QLabel{
+                font-size:24px;
+                font-weight:bold;
+            }
+            """
+        )
 
-        barre = QHBoxLayout()
+        self.ajouter_widget(
+            titre
+        )
 
-        titre = QLabel("Patients")
+        self.creer_barre_recherche()
 
-        titre.setStyleSheet("""
-            font-size:24px;
-            font-weight:bold;
-        """)
+        self.creer_tableau()
 
-        barre.addWidget(titre)
+        self.creer_boutons()
 
-        barre.addStretch()
+    # =====================================================
+    # Barre de recherche
+    # =====================================================
 
-        self.btn_nouveau = QPushButton("➕ Nouveau")
-        self.btn_modifier = QPushButton("✏ Modifier")
-        self.btn_supprimer = QPushButton("🗑 Supprimer")
+    def creer_barre_recherche(self):
 
-        barre.addWidget(self.btn_nouveau)
-        barre.addWidget(self.btn_modifier)
-        barre.addWidget(self.btn_supprimer)
-
-        layout.addLayout(barre)
-
-        # -----------------------------------
-        # Recherche
-        # -----------------------------------
+        layout = QHBoxLayout()
 
         self.recherche = QLineEdit()
 
@@ -75,27 +99,34 @@ class PatientsPage(QWidget):
             "Rechercher un patient..."
         )
 
-        layout.addWidget(self.recherche)
+        layout.addWidget(
+            self.recherche
+        )
 
-        # -----------------------------------
-        # Tableau
-        # -----------------------------------
+        self.layout.addLayout(
+            layout
+        )
+
+    # =====================================================
+    # Tableau
+    # =====================================================
+
+    def creer_tableau(self):
 
         self.table = QTableWidget()
 
-        self.table.setColumnCount(6)
+        self.table.setColumnCount(7)
 
-        self.table.setHorizontalHeaderLabels([
-            "ID",
-            "Nom",
-            "Prénom",
-            "Téléphone",
-            "Naissance",
-            "Dernière visite"
-        ])
-
-        self.table.horizontalHeader().setSectionResizeMode(
-            QHeaderView.Stretch
+        self.table.setHorizontalHeaderLabels(
+            [
+                "N° dossier",
+                "Nom",
+                "Prénom",
+                "Téléphone",
+                "Profession",
+                "Actif",
+                "ID",
+            ]
         )
 
         self.table.setSelectionBehavior(
@@ -110,18 +141,113 @@ class PatientsPage(QWidget):
             QAbstractItemView.NoEditTriggers
         )
 
-        self.table.verticalHeader().setVisible(False)
+        self.table.setAlternatingRowColors(
+            True
+        )
 
-        self.table.setAlternatingRowColors(True)
+        self.table.setSortingEnabled(
+            True
+        )
 
-        layout.addWidget(self.table)
+        self.table.setColumnHidden(
+            6,
+            True,
+        )
 
-        # -----------------------------------
-        # Connexions
-        # -----------------------------------
+        header = self.table.horizontalHeader()
 
-        self.btn_nouveau.clicked.connect(
-            self.nouveau_patient
+        header.setStretchLastSection(
+            False
+        )
+
+        header.setSectionResizeMode(
+            0,
+            QHeaderView.ResizeToContents,
+        )
+
+        header.setSectionResizeMode(
+            1,
+            QHeaderView.Stretch,
+        )
+
+        header.setSectionResizeMode(
+            2,
+            QHeaderView.Stretch,
+        )
+
+        header.setSectionResizeMode(
+            3,
+            QHeaderView.ResizeToContents,
+        )
+
+        header.setSectionResizeMode(
+            4,
+            QHeaderView.Stretch,
+        )
+
+        header.setSectionResizeMode(
+            5,
+            QHeaderView.ResizeToContents,
+        )
+
+        self.layout.addWidget(
+            self.table
+        )
+
+    # =====================================================
+    # Boutons
+    # =====================================================
+
+    def creer_boutons(self):
+
+        layout = QHBoxLayout()
+
+        self.btn_ajouter = QPushButton(
+            "➕ Nouveau"
+        )
+
+        self.btn_modifier = QPushButton(
+            "✏ Modifier"
+        )
+
+        self.btn_supprimer = QPushButton(
+            "🗑 Désactiver"
+        )
+
+        self.btn_actualiser = QPushButton(
+            "🔄 Actualiser"
+        )
+
+        layout.addWidget(
+            self.btn_ajouter
+        )
+
+        layout.addWidget(
+            self.btn_modifier
+        )
+
+        layout.addWidget(
+            self.btn_supprimer
+        )
+
+        layout.addStretch()
+
+        layout.addWidget(
+            self.btn_actualiser
+        )
+
+        self.layout.addLayout(
+            layout
+        )
+
+    # =====================================================
+    # Signaux
+    # =====================================================
+
+    def connecter_signaux(self):
+
+        self.btn_ajouter.clicked.connect(
+            self.ajouter_patient
         )
 
         self.btn_modifier.clicked.connect(
@@ -132,12 +258,16 @@ class PatientsPage(QWidget):
             self.supprimer_patient
         )
 
-        self.table.doubleClicked.connect(
-            self.modifier_patient
+        self.btn_actualiser.clicked.connect(
+            self.actualiser
         )
 
         self.recherche.textChanged.connect(
             self.rechercher
+        )
+
+        self.table.doubleClicked.connect(
+            lambda _: self.modifier_patient()
         )
 
     # =====================================================
@@ -146,55 +276,169 @@ class PatientsPage(QWidget):
 
     def charger_patients(self):
 
-        self.afficher_patients(
-            liste_patients()
+        self.table.setRowCount(0)
+
+        patients = (
+            self.controller.rechercher_tous()
         )
 
-    # =====================================================
+        for patient in patients:
 
-    def afficher_patients(self, patients):
+            ligne = self.table.rowCount()
 
-        self.table.setRowCount(len(patients))
-
-        for ligne, patient in enumerate(patients):
+            self.table.insertRow(ligne)
 
             self.table.setItem(
                 ligne,
                 0,
-                QTableWidgetItem(str(patient.id))
+                QTableWidgetItem(
+                    patient.numero_dossier
+                ),
             )
 
             self.table.setItem(
                 ligne,
                 1,
-                QTableWidgetItem(patient.nom)
+                QTableWidgetItem(
+                    patient.nom
+                ),
             )
 
             self.table.setItem(
                 ligne,
                 2,
-                QTableWidgetItem(patient.prenom)
+                QTableWidgetItem(
+                    patient.prenom
+                ),
             )
 
             self.table.setItem(
                 ligne,
                 3,
-                QTableWidgetItem(patient.telephone or "")
+                QTableWidgetItem(
+                    patient.telephone
+                ),
             )
 
             self.table.setItem(
                 ligne,
                 4,
-                QTableWidgetItem(patient.date_naissance or "")
+                QTableWidgetItem(
+                    patient.profession or ""
+                ),
             )
 
             self.table.setItem(
                 ligne,
                 5,
                 QTableWidgetItem(
-                    patient.date_derniere_visite or ""
-                )
+                    "Oui"
+                    if patient.actif
+                    else "Non"
+                ),
             )
+
+            self.table.setItem(
+                ligne,
+                6,
+                QTableWidgetItem(
+                    str(patient.id)
+                ),
+            )
+
+        self.table.resizeRowsToContents()
+
+    # =====================================================
+    # Recherche
+    # =====================================================
+
+    def rechercher(self):
+
+        texte = (
+            self.recherche.text()
+            .strip()
+        )
+
+        if not texte:
+
+            self.charger_patients()
+
+            return
+
+        self.table.setRowCount(0)
+
+        patients = (
+            self.controller.rechercher(
+                texte
+            )
+        )
+
+        for patient in patients:
+
+            ligne = self.table.rowCount()
+
+            self.table.insertRow(ligne)
+
+            self.table.setItem(
+                ligne,
+                0,
+                QTableWidgetItem(
+                    patient.numero_dossier
+                ),
+            )
+
+            self.table.setItem(
+                ligne,
+                1,
+                QTableWidgetItem(
+                    patient.nom
+                ),
+            )
+
+            self.table.setItem(
+                ligne,
+                2,
+                QTableWidgetItem(
+                    patient.prenom
+                ),
+            )
+
+            self.table.setItem(
+                ligne,
+                3,
+                QTableWidgetItem(
+                    patient.telephone
+                ),
+            )
+
+            self.table.setItem(
+                ligne,
+                4,
+                QTableWidgetItem(
+                    patient.profession or ""
+                ),
+            )
+
+            self.table.setItem(
+                ligne,
+                5,
+                QTableWidgetItem(
+                    "Oui"
+                    if patient.actif
+                    else "Non"
+                ),
+            )
+
+            self.table.setItem(
+                ligne,
+                6,
+                QTableWidgetItem(
+                    str(patient.id)
+                ),
+            )
+
+        self.table.resizeRowsToContents()
+
     # =====================================================
     # Patient sélectionné
     # =====================================================
@@ -204,62 +448,58 @@ class PatientsPage(QWidget):
         ligne = self.table.currentRow()
 
         if ligne < 0:
+
+            QMessageBox.warning(
+                self,
+                "Patient",
+                "Veuillez sélectionner un patient.",
+            )
+
             return None
 
-        return int(
+        identifiant = int(
             self.table.item(
                 ligne,
-                0
+                6,
             ).text()
         )
 
+        return (
+            self.controller.rechercher_par_id(
+                identifiant
+            )
+        )
+
     # =====================================================
-    # Nouveau patient
+    # Ajouter un patient
     # =====================================================
 
-    def nouveau_patient(self):
+    def ajouter_patient(self):
 
-        dialog = PatientDialog(parent=self)
+        dialog = PatientDialog(
+            controller=self.controller,
+            parent=self,
+        )
 
         if dialog.exec():
 
             self.charger_patients()
 
     # =====================================================
-    # Modifier
+    # Modifier un patient
     # =====================================================
 
     def modifier_patient(self):
 
-        patient_id = self.patient_selectionne()
-
-        if patient_id is None:
-
-            QMessageBox.information(
-                self,
-                "Information",
-                "Sélectionnez un patient."
-            )
-
-            return
-
-        patient = detail_patient(patient_id)
+        patient = self.patient_selectionne()
 
         if patient is None:
-
-            QMessageBox.warning(
-                self,
-                "Erreur",
-                "Patient introuvable."
-            )
-
-            self.charger_patients()
-
             return
 
         dialog = PatientDialog(
+            controller=self.controller,
             patient=patient,
-            parent=self
+            parent=self,
         )
 
         if dialog.exec():
@@ -267,77 +507,68 @@ class PatientsPage(QWidget):
             self.charger_patients()
 
     # =====================================================
-    # Recherche
-    # =====================================================
-
-    def rechercher(self):
-
-        texte = self.recherche.text().strip()
-
-        if texte == "":
-
-            self.charger_patients()
-
-            return
-
-        self.afficher_patients(
-            rechercher_patients(texte)
-        )
-    # =====================================================
-    # Supprimer
+    # Désactiver un patient
     # =====================================================
 
     def supprimer_patient(self):
 
-        patient_id = self.patient_selectionne()
+        patient = self.patient_selectionne()
 
-        if patient_id is None:
-
-            QMessageBox.information(
-                self,
-                "Information",
-                "Veuillez sélectionner un patient."
-            )
-
+        if patient is None:
             return
 
         reponse = QMessageBox.question(
             self,
             "Confirmation",
-            "Voulez-vous vraiment supprimer ce patient ?",
+            (
+                f"Voulez-vous désactiver le patient\n\n"
+                f"{patient.nom} {patient.prenom} ?"
+            ),
             QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No
+            QMessageBox.No,
         )
 
         if reponse != QMessageBox.Yes:
             return
 
+        patient.actif = False
+
+        self.controller.modifier_patient(
+            patient
+        )
+
+        self.charger_patients()
+
+        QMessageBox.information(
+            self,
+            "Succès",
+            "Le patient a été désactivé.",
+        )
+
+    # =====================================================
+    # Actualiser
+    # =====================================================
+
+    def actualiser(self):
+
+        self.recherche.clear()
+
+        self.charger_patients()
+
+    # =====================================================
+    # Fermeture
+    # =====================================================
+
+    def closeEvent(
+        self,
+        event,
+    ):
+
         try:
 
-            resultat = supprimer_patient(patient_id)
+            self.session.close()
 
-            if resultat:
+        except Exception:
+            pass
 
-                QMessageBox.information(
-                    self,
-                    "Succès",
-                    "Le patient a été supprimé."
-                )
-
-                self.charger_patients()
-
-            else:
-
-                QMessageBox.warning(
-                    self,
-                    "Erreur",
-                    "Patient introuvable."
-                )
-
-        except Exception as e:
-
-            QMessageBox.critical(
-                self,
-                "Erreur",
-                f"Impossible de supprimer le patient.\n\n{e}"
-            )
+        event.accept()

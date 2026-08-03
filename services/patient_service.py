@@ -1,220 +1,202 @@
-from database import SessionLocal
+"""
+=========================================================
+OptiManager Pro
+---------------------------------------------------------
+Fichier : patient_service.py
+Description : Service métier des patients.
+Auteur : Mohamed Tarek & ChatGPT
+Version : 3.0.0
+=========================================================
+"""
+
+from sqlalchemy.orm import Session
 
 from models.patient import Patient
+from repositories.patient_repository import PatientRepository
 
 
-# ==================================================
-# Liste des patients
-# ==================================================
+class PatientService:
+    """
+    Service métier des patients.
+    """
 
-def liste_patients():
+    def __init__(
+        self,
+        session: Session,
+    ) -> None:
 
-    db = SessionLocal()
-
-    try:
-
-        return (
-            db.query(Patient)
-            .order_by(Patient.nom.asc())
-            .all()
+        self.repository = PatientRepository(
+            session
         )
 
-    finally:
+    # =====================================================
+    # CRUD
+    # =====================================================
 
-        db.close()
+    def creer(
+        self,
+        patient: Patient,
+    ) -> Patient:
+        """
+        Crée un nouveau patient après validation.
+        """
 
+        # ---------------------------------------------
+        # Téléphone
+        # ---------------------------------------------
 
-# ==================================================
-# Recherche
-# ==================================================
+        if self.telephone_existe(
+            patient.telephone
+        ):
 
-def rechercher_patients(texte):
-
-    db = SessionLocal()
-
-    try:
-
-        return (
-            db.query(Patient)
-            .filter(
-                Patient.nom.ilike(f"%{texte}%")
-                |
-                Patient.prenom.ilike(f"%{texte}%")
-                |
-                Patient.telephone.ilike(f"%{texte}%")
+            raise ValueError(
+                "Ce numéro de téléphone existe déjà."
             )
-            .order_by(Patient.nom.asc())
-            .all()
+
+        # ---------------------------------------------
+        # E-mail
+        # ---------------------------------------------
+
+        if (
+            patient.email
+            and self.repository.email_existe(
+                patient.email
+            )
+        ):
+
+            raise ValueError(
+                "Cette adresse e-mail existe déjà."
+            )
+
+        # ---------------------------------------------
+        # Numéro de dossier
+        # ---------------------------------------------
+
+        patient.numero_dossier = (
+            self.generer_numero_dossier()
         )
 
-    finally:
+        return self.repository.ajouter(
+            patient
+        )
 
-        db.close()
+    def modifier(
+        self,
+        patient: Patient,
+    ) -> None:
+        """
+        Enregistre les modifications d'un patient.
+        """
 
+        self.repository.sauvegarder()
 
-# ==================================================
-# Détail
-# ==================================================
+    def supprimer(
+        self,
+        patient: Patient,
+    ) -> None:
+        """
+        Supprime un patient.
+        """
 
-def detail_patient(patient_id):
+        self.repository.supprimer(
+            patient
+        )
 
-    db = SessionLocal()
+    # =====================================================
+    # Recherches
+    # =====================================================
 
-    try:
+    def rechercher(
+        self,
+        texte: str,
+    ) -> list[Patient]:
+
+        return self.repository.rechercher(
+            texte
+        )
+
+    def rechercher_tous(
+        self,
+    ) -> list[Patient]:
 
         return (
-            db.query(Patient)
-            .filter(Patient.id == patient_id)
-            .first()
+            self.repository.rechercher_actifs()
         )
 
-    finally:
+    def rechercher_par_id(
+        self,
+        identifiant: int,
+    ) -> Patient | None:
 
-        db.close()
-
-
-# ==================================================
-# Création
-# ==================================================
-
-def creer_patient(
-
-    nom,
-    prenom,
-    telephone,
-    date_naissance="",
-    adresse="",
-    notes=""
-
-):
-
-    db = SessionLocal()
-
-    try:
-
-        patient = Patient(
-
-            nom=nom.strip(),
-
-            prenom=prenom.strip(),
-
-            telephone=telephone.strip(),
-
-            date_naissance=date_naissance.strip(),
-
-            adresse=adresse.strip(),
-
-            notes=notes.strip()
-
+        return (
+            self.repository.rechercher_par_id(
+                identifiant
+            )
         )
 
-        db.add(patient)
+    # =====================================================
+    # Génération automatique
+    # =====================================================
 
-        db.commit()
+    def generer_numero_dossier(
+        self,
+    ) -> str:
+        """
+        Génère un numéro de dossier unique.
+        """
 
-        db.refresh(patient)
-
-        return patient
-
-    except Exception:
-
-        db.rollback()
-
-        raise
-
-    finally:
-
-        db.close()
-
-
-# ==================================================
-# Modification
-# ==================================================
-
-def modifier_patient(
-
-    patient_id,
-
-    nom,
-    prenom,
-    telephone,
-
-    date_naissance,
-    adresse,
-    notes
-
-):
-
-    db = SessionLocal()
-
-    try:
-
-        patient = (
-            db.query(Patient)
-            .filter(Patient.id == patient_id)
-            .first()
+        dernier = (
+            self.repository
+            .dernier_numero_dossier()
         )
 
-        if patient is None:
+        if dernier is None:
+            return "PAT000001"
 
-            return None
-
-        patient.nom = nom.strip()
-        patient.prenom = prenom.strip()
-        patient.telephone = telephone.strip()
-        patient.date_naissance = date_naissance.strip()
-        patient.adresse = adresse.strip()
-        patient.notes = notes.strip()
-
-        db.commit()
-
-        db.refresh(patient)
-
-        return patient
-
-    except Exception:
-
-        db.rollback()
-
-        raise
-
-    finally:
-
-        db.close()
-
-
-# ==================================================
-# Suppression
-# ==================================================
-
-def supprimer_patient(patient_id):
-
-    db = SessionLocal()
-
-    try:
-
-        patient = (
-            db.query(Patient)
-            .filter(Patient.id == patient_id)
-            .first()
+        numero = int(
+            dernier.replace(
+                "PAT",
+                "",
+            )
         )
 
-        if patient is None:
+        numero += 1
 
-            return False
+        return f"PAT{numero:06d}"
 
-        db.delete(patient)
+    # =====================================================
+    # Validation
+    # =====================================================
 
-        db.commit()
+    def telephone_existe(
+        self,
+        telephone: str,
+    ) -> bool:
 
-        return True
+        return (
+            self.repository.telephone_existe(
+                telephone
+            )
+        )
 
-    except Exception:
+    def numero_existe(
+        self,
+        numero: str,
+    ) -> bool:
 
-        db.rollback()
+        return (
+            self.repository.numero_existe(
+                numero
+            )
+        )
 
-        raise
+    def email_existe(
+        self,
+        email: str,
+    ) -> bool:
 
-    finally:
-
-        db.close()
+        return (
+            self.repository.email_existe(
+                email
+            )
+        )
