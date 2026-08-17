@@ -22,7 +22,9 @@ class PatientProfile(BaseWindow):
 
     def __init__(self, patient=None):
         super().__init__("Dossier patient")
+
         self.patient = patient
+
         self.construire_interface()
 
     # =====================================================
@@ -52,6 +54,7 @@ class PatientProfile(BaseWindow):
         self.nom_patient = QLabel(
             self.obtenir_nom_patient()
         )
+
         self.nom_patient.setStyleSheet(
             """
             QLabel {
@@ -69,19 +72,39 @@ class PatientProfile(BaseWindow):
             self.obtenir_statut()
         )
 
-        informations.addWidget(self.nom_patient)
-        informations.addWidget(self.numero_dossier)
-        informations.addWidget(self.statut)
+        informations.addWidget(
+            self.nom_patient
+        )
+        informations.addWidget(
+            self.numero_dossier
+        )
+        informations.addWidget(
+            self.statut
+        )
 
         actions = QHBoxLayout()
 
-        self.btn_modifier = QPushButton("Modifier")
-        self.btn_imprimer = QPushButton("Imprimer")
-        self.btn_archiver = QPushButton("Archiver")
+        self.btn_modifier = QPushButton(
+            "Modifier"
+        )
 
-        actions.addWidget(self.btn_modifier)
-        actions.addWidget(self.btn_imprimer)
-        actions.addWidget(self.btn_archiver)
+        self.btn_imprimer = QPushButton(
+            "Imprimer"
+        )
+
+        self.btn_archiver = QPushButton(
+            "Archiver"
+        )
+
+        actions.addWidget(
+            self.btn_modifier
+        )
+        actions.addWidget(
+            self.btn_imprimer
+        )
+        actions.addWidget(
+            self.btn_archiver
+        )
 
         layout.addWidget(avatar)
         layout.addLayout(informations)
@@ -98,10 +121,17 @@ class PatientProfile(BaseWindow):
         if self.patient is None:
             return "Patient"
 
-        prenom = (self.patient.prenom or "").strip()
-        nom = (self.patient.nom or "").strip()
+        prenom = (
+            self.patient.prenom or ""
+        ).strip()
 
-        nom_complet = f"{prenom} {nom}".strip()
+        nom = (
+            self.patient.nom or ""
+        ).strip()
+
+        nom_complet = (
+            f"{prenom} {nom}"
+        ).strip()
 
         return nom_complet or "Patient"
 
@@ -109,13 +139,20 @@ class PatientProfile(BaseWindow):
         if self.patient is None:
             return "---"
 
-        return self.patient.numero_dossier or "---"
+        return (
+            self.patient.numero_dossier
+            or "---"
+        )
 
     def obtenir_statut(self) -> str:
         if self.patient is None:
             return "● Actif"
 
-        return "● Actif" if self.patient.actif else "● Inactif"
+        return (
+            "● Actif"
+            if self.patient.actif
+            else "● Inactif"
+        )
 
     def obtenir_age(self) -> str:
         if (
@@ -135,7 +172,8 @@ class PatientProfile(BaseWindow):
                     aujourd_hui.month,
                     aujourd_hui.day,
                 )
-                < (
+                <
+                (
                     naissance.month,
                     naissance.day,
                 )
@@ -148,19 +186,28 @@ class PatientProfile(BaseWindow):
         if self.patient is None:
             return "---"
 
-        return self.patient.telephone or "---"
+        return (
+            self.patient.telephone
+            or "---"
+        )
 
     def obtenir_email(self) -> str:
         if self.patient is None:
             return "---"
 
-        return self.patient.email or "---"
+        return (
+            self.patient.email
+            or "---"
+        )
 
     def obtenir_adresse(self) -> str:
         if self.patient is None:
             return "---"
 
-        return self.patient.adresse or "---"
+        return (
+            self.patient.adresse
+            or "---"
+        )
 
     def obtenir_derniere_visite(self) -> str:
         return "---"
@@ -174,26 +221,70 @@ class PatientProfile(BaseWindow):
         scroll.setWidgetResizable(True)
 
         contenu = QWidget()
+
         layout = QVBoxLayout(contenu)
         layout.setSpacing(15)
 
-        layout.addWidget(self.creer_resume())
+        layout.addWidget(
+            self.creer_resume()
+        )
 
         tabs = QTabWidget()
 
-        tabs.addTab(self.creer_identite(), "Identité")
-        tabs.addTab(self.creer_coordonnees(), "Coordonnées")
-        tabs.addTab(self.creer_contacts(), "Contacts")
-        tabs.addTab(self.creer_clinique(), "Clinique")
-        tabs.addTab(self.creer_rendez_vous(), "Rendez-vous")
-        tabs.addTab(self.creer_prescriptions(), "Prescriptions")
-        tabs.addTab(self.creer_ventes(), "Ventes")
-        tabs.addTab(self.creer_documents(), "Documents")
-        tabs.addTab(self.creer_historique(), "Historique")
+        tabs.addTab(
+            self.creer_identite(),
+            "Identité",
+        )
+
+        tabs.addTab(
+            self.creer_coordonnees(),
+            "Coordonnées",
+        )
+
+        tabs.addTab(
+            self.creer_assurance(),
+            "Assurance",
+        )
+
+        tabs.addTab(
+            self.creer_contacts(),
+            "Contacts",
+        )
+
+        tabs.addTab(
+            self.creer_clinique(),
+            "Clinique",
+        )
+
+        tabs.addTab(
+            self.creer_rendez_vous(),
+            "Rendez-vous",
+        )
+
+        tabs.addTab(
+            self.creer_prescriptions(),
+            "Prescriptions",
+        )
+
+        tabs.addTab(
+            self.creer_ventes(),
+            "Ventes",
+        )
+
+        tabs.addTab(
+            self.creer_documents(),
+            "Documents",
+        )
+
+        tabs.addTab(
+            self.creer_historique(),
+            "Historique",
+        )
 
         layout.addWidget(tabs)
 
         scroll.setWidget(contenu)
+
         self.layout.addWidget(scroll)
 
     # =====================================================
@@ -202,30 +293,60 @@ class PatientProfile(BaseWindow):
 
     def creer_resume(self):
         cadre = QFrame()
-        cadre.setFrameShape(QFrame.StyledPanel)
+
+        cadre.setFrameShape(
+            QFrame.StyledPanel
+        )
 
         grid = QGridLayout(cadre)
 
         elements = [
-            ("Âge", self.obtenir_age()),
-            ("Téléphone", self.obtenir_telephone()),
-            ("Email", self.obtenir_email()),
-            ("Dernière visite", self.obtenir_derniere_visite()),
+            (
+                "Âge",
+                self.obtenir_age(),
+            ),
+            (
+                "Téléphone",
+                self.obtenir_telephone(),
+            ),
+            (
+                "Email",
+                self.obtenir_email(),
+            ),
+            (
+                "Dernière visite",
+                self.obtenir_derniere_visite(),
+            ),
         ]
 
-        for colonne, (titre, valeur) in enumerate(elements):
+        for colonne, (
+            titre,
+            valeur,
+        ) in enumerate(elements):
+
             bloc = QVBoxLayout()
 
             label_titre = QLabel(titre)
-            label_titre.setStyleSheet("font-weight: bold;")
+            label_titre.setStyleSheet(
+                "font-weight: bold;"
+            )
 
             label_valeur = QLabel(valeur)
             label_valeur.setWordWrap(True)
 
-            bloc.addWidget(label_titre)
-            bloc.addWidget(label_valeur)
+            bloc.addWidget(
+                label_titre
+            )
 
-            grid.addLayout(bloc, 0, colonne)
+            bloc.addWidget(
+                label_valeur
+            )
+
+            grid.addLayout(
+                bloc,
+                0,
+                colonne,
+            )
 
         return cadre
 
@@ -237,52 +358,82 @@ class PatientProfile(BaseWindow):
         widget = QWidget()
         layout = QGridLayout(widget)
 
+        nom = "---"
+        prenom = "---"
+        date_naissance = "---"
+        profession = "---"
+        notes = "---"
+
+        if self.patient is not None:
+            nom = (
+                self.patient.nom
+                or "---"
+            )
+
+            prenom = (
+                self.patient.prenom
+                or "---"
+            )
+
+            if self.patient.date_naissance:
+                date_naissance = (
+                    self.patient.date_naissance
+                    .strftime("%d/%m/%Y")
+                )
+
+            profession = (
+                self.patient.profession
+                or "---"
+            )
+
+            notes = (
+                self.patient.notes
+                or "---"
+            )
+
         donnees = [
-            (
-                "Nom",
-                self.patient.nom if self.patient else "---",
-            ),
-            (
-                "Prénom",
-                self.patient.prenom if self.patient else "---",
-            ),
+            ("Nom", nom),
+            ("Prénom", prenom),
             (
                 "Date de naissance",
-                (
-                    self.patient.date_naissance.strftime("%d/%m/%Y")
-                    if self.patient and self.patient.date_naissance
-                    else "---"
-                ),
+                date_naissance,
             ),
             (
                 "Profession",
-                (
-                    self.patient.profession or "---"
-                    if self.patient
-                    else "---"
-                ),
+                profession,
             ),
-            (
-                "Notes",
-                (
-                    self.patient.notes or "---"
-                    if self.patient
-                    else "---"
-                ),
-            ),
+            ("Notes", notes),
         ]
 
-        for ligne, (titre, valeur) in enumerate(donnees):
+        for ligne, (
+            titre,
+            valeur,
+        ) in enumerate(donnees):
+
             label_titre = QLabel(titre)
-            label_titre.setStyleSheet("font-weight: bold;")
+            label_titre.setStyleSheet(
+                "font-weight: bold;"
+            )
 
             label_valeur = QLabel(valeur)
             label_valeur.setWordWrap(True)
 
-            layout.addWidget(label_titre, ligne, 0)
-            layout.addWidget(label_valeur, ligne, 1)
+            layout.addWidget(
+                label_titre,
+                ligne,
+                0,
+            )
 
-        layout.setColumnStretch(1, 1)
+            layout.addWidget(
+                label_valeur,
+                ligne,
+                1,
+            )
+
+        layout.setColumnStretch(
+            1,
+            1,
+        )
 
         return widget
 
@@ -295,22 +446,215 @@ class PatientProfile(BaseWindow):
         layout = QGridLayout(widget)
 
         donnees = [
-            ("Téléphone", self.obtenir_telephone()),
-            ("Email", self.obtenir_email()),
-            ("Adresse", self.obtenir_adresse()),
+            (
+                "Téléphone",
+                self.obtenir_telephone(),
+            ),
+            (
+                "Email",
+                self.obtenir_email(),
+            ),
+            (
+                "Adresse",
+                self.obtenir_adresse(),
+            ),
         ]
 
-        for ligne, (titre, valeur) in enumerate(donnees):
+        for ligne, (
+            titre,
+            valeur,
+        ) in enumerate(donnees):
+
             label_titre = QLabel(titre)
-            label_titre.setStyleSheet("font-weight: bold;")
+            label_titre.setStyleSheet(
+                "font-weight: bold;"
+            )
 
             label_valeur = QLabel(valeur)
             label_valeur.setWordWrap(True)
 
-            layout.addWidget(label_titre, ligne, 0)
-            layout.addWidget(label_valeur, ligne, 1)
+            layout.addWidget(
+                label_titre,
+                ligne,
+                0,
+            )
 
-        layout.setColumnStretch(1, 1)
+            layout.addWidget(
+                label_valeur,
+                ligne,
+                1,
+            )
+
+        layout.setColumnStretch(
+            1,
+            1,
+        )
+
+        return widget
+
+    # =====================================================
+    # Assurance
+    # =====================================================
+
+    def creer_assurance(self):
+        widget = QWidget()
+        layout = QGridLayout(widget)
+
+        assurances = []
+
+        if self.patient is not None:
+            assurances = getattr(
+                self.patient,
+                "insurances",
+                [],
+            )
+
+        if not assurances:
+            label = QLabel(
+                "Aucune assurance enregistrée."
+            )
+
+            label.setStyleSheet(
+                """
+                QLabel {
+                    font-size: 16px;
+                    padding: 20px;
+                }
+                """
+            )
+
+            layout.addWidget(
+                label,
+                0,
+                0,
+            )
+
+            layout.setRowStretch(
+                1,
+                1,
+            )
+
+            return widget
+
+        assurance = assurances[0]
+
+        organisme = (
+            assurance.organisme
+            or "---"
+        )
+
+        numero_assure = (
+            assurance.numero_assure
+            or "---"
+        )
+
+        numero_contrat = (
+            assurance.numero_contrat
+            or "---"
+        )
+
+        type_couverture = (
+            assurance.type_couverture
+            or "---"
+        )
+
+        date_debut = (
+            assurance.date_debut
+            .strftime("%d/%m/%Y")
+            if assurance.date_debut
+            else "---"
+        )
+
+        date_fin = (
+            assurance.date_fin
+            .strftime("%d/%m/%Y")
+            if assurance.date_fin
+            else "---"
+        )
+
+        statut = (
+            "Active"
+            if assurance.actif
+            else "Inactive"
+        )
+
+        observations = (
+            assurance.observations
+            or "---"
+        )
+
+        donnees = [
+            (
+                "Organisme",
+                organisme,
+            ),
+            (
+                "N° assuré",
+                numero_assure,
+            ),
+            (
+                "N° contrat",
+                numero_contrat,
+            ),
+            (
+                "Type de couverture",
+                type_couverture,
+            ),
+            (
+                "Date début",
+                date_debut,
+            ),
+            (
+                "Date fin",
+                date_fin,
+            ),
+            (
+                "Statut",
+                statut,
+            ),
+            (
+                "Observations",
+                observations,
+            ),
+        ]
+
+        for ligne, (
+            titre,
+            valeur,
+        ) in enumerate(donnees):
+
+            label_titre = QLabel(
+                titre
+            )
+
+            label_titre.setStyleSheet(
+                "font-weight: bold;"
+            )
+
+            label_valeur = QLabel(
+                valeur
+            )
+
+            label_valeur.setWordWrap(
+                True
+            )
+
+            layout.addWidget(
+                label_titre,
+                ligne,
+                0,
+            )
+
+            layout.addWidget(
+                label_valeur,
+                ligne,
+                1,
+            )
+
+        layout.setColumnStretch(
+            1,
+            1,
+        )
 
         return widget
 
@@ -318,11 +662,15 @@ class PatientProfile(BaseWindow):
     # Sections provisoires
     # =====================================================
 
-    def creer_section(self, titre):
+    def creer_section(
+        self,
+        titre,
+    ):
         widget = QWidget()
         layout = QVBoxLayout(widget)
 
         label = QLabel(titre)
+
         label.setStyleSheet(
             """
             QLabel {
@@ -338,22 +686,36 @@ class PatientProfile(BaseWindow):
         return widget
 
     def creer_contacts(self):
-        return self.creer_section("Contacts et entourage")
+        return self.creer_section(
+            "Contacts et entourage"
+        )
 
     def creer_clinique(self):
-        return self.creer_section("Informations cliniques")
+        return self.creer_section(
+            "Informations cliniques"
+        )
 
     def creer_rendez_vous(self):
-        return self.creer_section("Rendez-vous")
+        return self.creer_section(
+            "Rendez-vous"
+        )
 
     def creer_prescriptions(self):
-        return self.creer_section("Prescriptions")
+        return self.creer_section(
+            "Prescriptions"
+        )
 
     def creer_ventes(self):
-        return self.creer_section("Historique des ventes")
+        return self.creer_section(
+            "Historique des ventes"
+        )
 
     def creer_documents(self):
-        return self.creer_section("Documents du patient")
+        return self.creer_section(
+            "Documents du patient"
+        )
 
     def creer_historique(self):
-        return self.creer_section("Timeline et historique")
+        return self.creer_section(
+            "Timeline et historique"
+        )
