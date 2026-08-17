@@ -90,7 +90,54 @@ class Patient(BaseModel):
     # =====================================================
     # Relations
     # =====================================================
+    contacts = relationship(
+        "PatientContact",
+        back_populates="patient",
+        cascade="all, delete-orphan",
+    )
 
+    addresses = relationship(
+        "PatientAddress",
+        back_populates="patient",
+        cascade="all, delete-orphan",
+    )
+
+    relationships = relationship(
+        "PatientRelationship",
+        foreign_keys="PatientRelationship.patient_id",
+        back_populates="patient",
+        cascade="all, delete-orphan",
+    )
+
+    insurances = relationship(
+        "PatientInsurance",
+        back_populates="patient",
+        cascade="all, delete-orphan",
+    )
+
+    documents = relationship(
+        "PatientDocument",
+        back_populates="patient",
+        cascade="all, delete-orphan",
+    )
+
+    photos = relationship(
+        "PatientPhoto",
+        back_populates="patient",
+        cascade="all, delete-orphan",
+    )
+
+    alerts = relationship(
+        "PatientAlert",
+        back_populates="patient",
+        cascade="all, delete-orphan",
+    )
+
+    tags = relationship(
+        "PatientTag",
+        back_populates="patient",
+        cascade="all, delete-orphan",
+    )
     consultations = relationship(
         "Consultation",
         back_populates="patient",

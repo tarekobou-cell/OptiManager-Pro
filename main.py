@@ -21,6 +21,7 @@ from database import db
 
 import models.utilisateur
 import models.patient
+import models.patient_entities
 import models.consultation
 import models.prescription
 import models.rendez_vous

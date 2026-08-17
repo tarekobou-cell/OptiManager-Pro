@@ -385,4 +385,147 @@ Le système doit permettre :
 
 Statut : CONCEPTION
 
-Prochaine étape : PATIENT-007 — Validation détaillée du modèle de données.
+## 14. PATIENT-007 — Validation du modèle de données
+
+### Entités principales
+
+- Patient
+- PatientContact
+- PatientAddress
+- PatientRelationship
+- PatientInsurance
+- PatientDocument
+- PatientPhoto
+- PatientAlert
+- PatientTag
+
+### Relations externes
+
+- Patient → Consultation
+- Patient → RendezVous
+- Patient → Vente
+- Patient → Reparation
+
+### Identifiants
+
+Chaque entité possède :
+
+- id
+- created_at
+- updated_at
+
+Les entités nécessitant une traçabilité utilisateur possèdent également :
+
+- created_by
+- updated_by
+
+### Contraintes principales
+
+- numero_dossier : UNIQUE
+- numero_dossier : INDEX
+- patient_id : FOREIGN KEY
+- telephone : INDEX
+- email : INDEX
+- numero_assure : INDEX
+
+### Suppression
+
+Aucune suppression physique du dossier Patient.
+
+Le système utilise l'archivage.
+
+### Historisation
+
+Les événements importants du dossier doivent rester consultables après archivage.
+
+### Décision
+
+Modèle validé pour passage à la conception ORM.
+
+Statut : VALIDÉ POUR CONCEPTION ORM
+## 15. PATIENT-008-A — Répartition des données
+
+### Patient — données centrales
+
+- id
+- numero_dossier
+- nom
+- prenom
+- nom_naissance
+- date_naissance
+- sexe
+- nationalite
+- lieu_naissance
+- numero_identite
+- profession
+- situation_familiale
+- actif
+- source
+- date_creation
+- date_modification
+
+### PatientContact
+
+- téléphone
+- téléphone secondaire
+- email
+- contact principal
+- contact urgence
+
+### PatientAddress
+
+- adresse
+- ville
+- wilaya
+- code postal
+- pays
+
+### PatientRelationship
+
+- parent
+- tuteur
+- conjoint
+- autre relation
+
+### PatientInsurance
+
+- organisme
+- numéro assuré
+- numéro contrat
+- couverture
+- dates de validité
+
+### PatientDocument
+
+- documents administratifs
+- ordonnances
+- justificatifs
+- pièces jointes
+
+### PatientPhoto
+
+- photo patient
+- photos documentaires
+
+### PatientAlert
+
+- alertes administratives
+- alertes importantes
+
+### PatientTag
+
+- catégorisation personnalisée
+
+### Hors du domaine Patient
+
+Les données détaillées suivantes appartiennent à d'autres domaines :
+
+- examens cliniques
+- réfraction
+- prescriptions
+- consultations
+- ventes
+- paiements
+- stock
+- réparations
+- rendez-vous
