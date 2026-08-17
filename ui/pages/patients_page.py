@@ -31,7 +31,7 @@ from ui.components.base_window import BaseWindow
 from ui.dialogs.patient_dialog import (
     PatientDialog,
 )
-
+from ui.patients.profile.patient_profile import PatientProfile
 
 class PatientsPage(BaseWindow):
     """
@@ -210,6 +210,10 @@ class PatientsPage(BaseWindow):
             "✏ Modifier"
         )
 
+        self.btn_dossier = QPushButton(
+            "📋 Ouvrir dossier"
+        )
+
         self.btn_supprimer = QPushButton(
             "🗑 Désactiver"
         )
@@ -227,6 +231,10 @@ class PatientsPage(BaseWindow):
         )
 
         layout.addWidget(
+            self.btn_dossier
+        )
+
+        layout.addWidget(
             self.btn_supprimer
         )
 
@@ -239,7 +247,6 @@ class PatientsPage(BaseWindow):
         self.layout.addLayout(
             layout
         )
-
     # =====================================================
     # Signaux
     # =====================================================
@@ -253,7 +260,9 @@ class PatientsPage(BaseWindow):
         self.btn_modifier.clicked.connect(
             self.modifier_patient
         )
-
+        self.btn_dossier.clicked.connect(
+            self.ouvrir_dossier
+        )
         self.btn_supprimer.clicked.connect(
             self.supprimer_patient
         )
@@ -469,6 +478,22 @@ class PatientsPage(BaseWindow):
                 identifiant
             )
         )
+
+#====================================
+# ouvrir dossier
+#==================================
+    def ouvrir_dossier(self):
+
+        patient = self.patient_selectionne()
+
+        if patient is None:
+            return
+
+        self.patient_profile = PatientProfile(
+            patient=patient
+        )
+
+        self.patient_profile.show()
 
     # =====================================================
     # Ajouter un patient
