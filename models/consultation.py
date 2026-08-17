@@ -49,6 +49,15 @@ class Consultation(BaseModel):
         index=True,
     )
 
+    utilisateur_id: Mapped[int | None] = mapped_column(
+    ForeignKey(
+        "utilisateurs.id",
+        ondelete="SET NULL",
+    ),
+    nullable=True,
+    index=True,
+)
+
     date_consultation: Mapped[datetime] = mapped_column(
         DateTime,
         default=datetime.now,
@@ -230,12 +239,10 @@ class Consultation(BaseModel):
         cascade="all, delete-orphan",
     )
 
-    vente = relationship(
-        "Vente",
-        back_populates="consultation",
-        uselist=False,
-    )
-
+    utilisateur = relationship(
+    "Utilisateur",
+    back_populates="consultations",
+)
     # =====================================================
     # Représentation
     # =====================================================
