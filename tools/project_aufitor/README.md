@@ -1,0 +1,1 @@
+# Project Auditor  Project Auditor est un outil d'analyse de projets Python.  Fonctionnalités :  - Analyse de la structure - Statistiques - Génération de rapports - Audit d'architecture - Détection des problèmes  Version : 1.0
