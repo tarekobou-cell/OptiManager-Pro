@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import date
+
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QFrame,
@@ -15,13 +17,10 @@ from PySide6.QtWidgets import (
 
 from ui.components.base_window import BaseWindow
 
+
 class PatientProfile(BaseWindow):
     """
     Fiche détaillée d'un patient.
-
-    Première version :
-    structure UI uniquement.
-    Les données seront branchées ensuite.
     """
 
     def __init__(self, patient=None):
@@ -55,9 +54,9 @@ class PatientProfile(BaseWindow):
 
         informations = QVBoxLayout()
 
-        self.nom_patient = QLabel(
-            "Patient"
-        )
+        nom = self.obtenir_nom_patient()
+
+        self.nom_patient = QLabel(nom)
         self.nom_patient.setStyleSheet(
             """
             QLabel {
@@ -67,20 +66,24 @@ class PatientProfile(BaseWindow):
             """
         )
 
+        numero = self.obtenir_numero_dossier()
+
         self.numero_dossier = QLabel(
-            "N° dossier : ---"
+            f"N° dossier : {numero}"
         )
 
-        self.statut = QLabel(
-            "● Actif"
-        )
+        statut = self.obtenir_statut()
+
+        self.statut = QLabel(statut)
 
         informations.addWidget(
             self.nom_patient
         )
+
         informations.addWidget(
             self.numero_dossier
         )
+
         informations.addWidget(
             self.statut
         )
@@ -102,19 +105,135 @@ class PatientProfile(BaseWindow):
         actions.addWidget(
             self.btn_modifier
         )
+
         actions.addWidget(
             self.btn_imprimer
         )
+
         actions.addWidget(
             self.btn_archiver
         )
 
         layout.addWidget(avatar)
-        layout.addLayout(informations)
+
+        layout.addLayout(
+            informations
+        )
+
         layout.addStretch()
-        layout.addLayout(actions)
+
+        layout.addLayout(
+            actions
+        )
 
         self.layout.addWidget(cadre)
+
+    # =====================================================
+    # Données patient
+    # =====================================================
+
+    def obtenir_nom_patient(self) -> str:
+        if self.patient is None:
+            return "Patient"
+
+        prenom = (
+            self.patient.prenom
+            or ""
+        ).strip()
+
+        nom = (
+            self.patient.nom
+            or ""
+        ).strip()
+
+        nom_complet = (
+            f"{prenom} {nom}"
+        ).strip()
+
+        return (
+            nom_complet
+            if nom_complet
+            else "Patient"
+        )
+
+    def obtenir_numero_dossier(self) -> str:
+        if self.patient is None:
+            return "---"
+
+        return (
+            self.patient.numero_dossier
+            or "---"
+        )
+
+    def obtenir_statut(self) -> str:
+        if self.patient is None:
+            return "● Actif"
+
+        return (
+            "● Actif"
+            if self.patient.actif
+            else "● Inactif"
+        )
+
+    def obtenir_age(self) -> str:
+        if (
+            self.patient is None
+            or self.patient.date_naissance is None
+        ):
+            return "---"
+
+        naissance = (
+            self.patient.date_naissance
+        )
+
+        aujourd_hui = date.today()
+
+        age = (
+            aujourd_hui.year
+            - naissance.year
+            - (
+                (
+                    aujourd_hui.month,
+                    aujourd_hui.day,
+                )
+                <
+                (
+                    naissance.month,
+                    naissance.day,
+                )
+            )
+        )
+
+        return f"{age} ans"
+
+    def obtenir_telephone(self) -> str:
+        if self.patient is None:
+            return "---"
+
+        return (
+            self.patient.telephone
+            or "---"
+        )
+
+    def obtenir_email(self) -> str:
+        if self.patient is None:
+            return "---"
+
+        return (
+            self.patient.email
+            or "---"
+        )
+
+    def obtenir_derniere_visite(self) -> str:
+        """
+        Dernière visite.
+
+        Pour l'instant, cette donnée n'est pas
+        calculée depuis les consultations.
+        Elle sera branchée dans la prochaine étape.
+        """
+
+        return "---"
 
     # =====================================================
     # Contenu
@@ -122,6 +241,7 @@ class PatientProfile(BaseWindow):
 
     def creer_contenu(self):
         scroll = QScrollArea()
+
         scroll.setWidgetResizable(True)
 
         contenu = QWidget()
@@ -193,31 +313,58 @@ class PatientProfile(BaseWindow):
 
     def creer_resume(self):
         cadre = QFrame()
-        cadre.setFrameShape(QFrame.StyledPanel)
+
+        cadre.setFrameShape(
+            QFrame.StyledPanel
+        )
 
         grid = QGridLayout(cadre)
 
         elements = [
-            ("Âge", "---"),
-            ("Téléphone", "---"),
-            ("Email", "---"),
-            ("Dernière visite", "---"),
+            (
+                "Âge",
+                self.obtenir_age(),
+            ),
+            (
+                "Téléphone",
+                self.obtenir_telephone(),
+            ),
+            (
+                "Email",
+                self.obtenir_email(),
+            ),
+            (
+                "Dernière visite",
+                self.obtenir_derniere_visite(),
+            ),
         ]
 
-        for colonne, (titre, valeur) in enumerate(
-            elements
-        ):
+        for colonne, (
+            titre,
+            valeur,
+        ) in enumerate(elements):
+
             bloc = QVBoxLayout()
 
-            label_titre = QLabel(titre)
+            label_titre = QLabel(
+                titre
+            )
+
             label_titre.setStyleSheet(
                 "font-weight: bold;"
             )
 
-            label_valeur = QLabel(valeur)
+            label_valeur = QLabel(
+                valeur
+            )
 
-            bloc.addWidget(label_titre)
-            bloc.addWidget(label_valeur)
+            bloc.addWidget(
+                label_titre
+            )
+
+            bloc.addWidget(
+                label_valeur
+            )
 
             grid.addLayout(
                 bloc,
@@ -228,15 +375,21 @@ class PatientProfile(BaseWindow):
         return cadre
 
     # =====================================================
-    # Onglets
+    # Sections
     # =====================================================
 
-    def creer_section(self, titre):
+    def creer_section(
+        self,
+        titre,
+    ):
         widget = QWidget()
 
-        layout = QVBoxLayout(widget)
+        layout = QVBoxLayout(
+            widget
+        )
 
         label = QLabel(titre)
+
         label.setStyleSheet(
             """
             QLabel {
@@ -246,7 +399,10 @@ class PatientProfile(BaseWindow):
             """
         )
 
-        layout.addWidget(label)
+        layout.addWidget(
+            label
+        )
+
         layout.addStretch()
 
         return widget
