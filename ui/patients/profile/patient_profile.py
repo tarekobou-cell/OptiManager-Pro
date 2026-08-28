@@ -18,8 +18,13 @@ from PySide6.QtWidgets import (
 from sqlalchemy.orm import object_session
 
 from ui.components.base_window import BaseWindow
+
 from ui.dialogs.patient_contact_dialog import (
     PatientContactDialog,
+)
+
+from ui.dialogs.patient_insurance_dialog import (
+    PatientInsuranceDialog,
 )
 
 
@@ -29,6 +34,7 @@ class PatientProfile(BaseWindow):
         super().__init__("Dossier patient")
 
         self.patient = patient
+
         self.construire_interface()
 
     # =====================================================
@@ -76,9 +82,15 @@ class PatientProfile(BaseWindow):
             self.obtenir_statut()
         )
 
-        informations.addWidget(self.nom_patient)
-        informations.addWidget(self.numero_dossier)
-        informations.addWidget(self.statut)
+        informations.addWidget(
+            self.nom_patient
+        )
+        informations.addWidget(
+            self.numero_dossier
+        )
+        informations.addWidget(
+            self.statut
+        )
 
         actions = QHBoxLayout()
 
@@ -86,9 +98,15 @@ class PatientProfile(BaseWindow):
         self.btn_imprimer = QPushButton("Imprimer")
         self.btn_archiver = QPushButton("Archiver")
 
-        actions.addWidget(self.btn_modifier)
-        actions.addWidget(self.btn_imprimer)
-        actions.addWidget(self.btn_archiver)
+        actions.addWidget(
+            self.btn_modifier
+        )
+        actions.addWidget(
+            self.btn_imprimer
+        )
+        actions.addWidget(
+            self.btn_archiver
+        )
 
         layout.addWidget(avatar)
         layout.addLayout(informations)
@@ -276,7 +294,10 @@ class PatientProfile(BaseWindow):
 
     def creer_resume(self):
         cadre = QFrame()
-        cadre.setFrameShape(QFrame.StyledPanel)
+
+        cadre.setFrameShape(
+            QFrame.StyledPanel
+        )
 
         grid = QGridLayout(cadre)
 
@@ -331,6 +352,7 @@ class PatientProfile(BaseWindow):
 
     def creer_identite(self):
         widget = QWidget()
+
         layout = QGridLayout(widget)
 
         donnees = [
@@ -411,7 +433,10 @@ class PatientProfile(BaseWindow):
                 1,
             )
 
-        layout.setColumnStretch(1, 1)
+        layout.setColumnStretch(
+            1,
+            1,
+        )
 
         return widget
 
@@ -421,6 +446,7 @@ class PatientProfile(BaseWindow):
 
     def creer_coordonnees(self):
         widget = QWidget()
+
         layout = QGridLayout(widget)
 
         donnees = [
@@ -463,7 +489,10 @@ class PatientProfile(BaseWindow):
                 1,
             )
 
-        layout.setColumnStretch(1, 1)
+        layout.setColumnStretch(
+            1,
+            1,
+        )
 
         return widget
 
@@ -473,7 +502,21 @@ class PatientProfile(BaseWindow):
 
     def creer_assurance(self):
         widget = QWidget()
-        layout = QGridLayout(widget)
+
+        layout = QVBoxLayout(widget)
+        layout.setSpacing(12)
+
+        btn_ajouter = QPushButton(
+            "➕ Ajouter assurance"
+        )
+
+        btn_ajouter.clicked.connect(
+            self.ajouter_assurance
+        )
+
+        layout.addWidget(
+            btn_ajouter
+        )
 
         assurances = []
 
@@ -487,6 +530,7 @@ class PatientProfile(BaseWindow):
             )
 
         if not assurances:
+
             label = QLabel(
                 "Aucune assurance enregistrée."
             )
@@ -501,99 +545,169 @@ class PatientProfile(BaseWindow):
             )
 
             layout.addWidget(
-                label,
-                0,
-                0,
+                label
             )
 
-            layout.setRowStretch(1, 1)
+            layout.addStretch()
 
             return widget
 
-        assurance = assurances[0]
+        for assurance in assurances:
 
-        donnees = [
-            (
-                "Organisme",
-                assurance.organisme or "---",
-            ),
-            (
-                "N° assuré",
-                assurance.numero_assure or "---",
-            ),
-            (
-                "N° contrat",
-                assurance.numero_contrat or "---",
-            ),
-            (
-                "Type de couverture",
-                assurance.type_couverture or "---",
-            ),
-            (
-                "Date début",
-                (
-                    assurance.date_debut.strftime(
-                        "%d/%m/%Y"
-                    )
-                    if assurance.date_debut
-                    else "---"
-                ),
-            ),
-            (
-                "Date fin",
-                (
-                    assurance.date_fin.strftime(
-                        "%d/%m/%Y"
-                    )
-                    if assurance.date_fin
-                    else "---"
-                ),
-            ),
-            (
-                "Statut",
-                (
-                    "Active"
-                    if assurance.actif
-                    else "Inactive"
-                ),
-            ),
-            (
-                "Observations",
-                assurance.observations or "---",
-            ),
-        ]
+            carte = QFrame()
 
-        for ligne, (
-            titre,
-            valeur,
-        ) in enumerate(donnees):
-
-            label_titre = QLabel(titre)
-            label_titre.setStyleSheet(
-                "font-weight: bold;"
+            carte.setFrameShape(
+                QFrame.StyledPanel
             )
 
-            label_valeur = QLabel(
-                str(valeur)
+            carte_layout = QGridLayout(
+                carte
             )
 
-            label_valeur.setWordWrap(True)
+            donnees = [
+                (
+                    "Organisme",
+                    assurance.organisme
+                    or "---",
+                ),
+                (
+                    "N° assuré",
+                    assurance.numero_assure
+                    or "---",
+                ),
+                (
+                    "N° contrat",
+                    assurance.numero_contrat
+                    or "---",
+                ),
+                (
+                    "Type de couverture",
+                    assurance.type_couverture
+                    or "---",
+                ),
+                (
+                    "Date début",
+                    (
+                        assurance.date_debut.strftime(
+                            "%d/%m/%Y"
+                        )
+                        if assurance.date_debut
+                        else "---"
+                    ),
+                ),
+                (
+                    "Date fin",
+                    (
+                        assurance.date_fin.strftime(
+                            "%d/%m/%Y"
+                        )
+                        if assurance.date_fin
+                        else "---"
+                    ),
+                ),
+                (
+                    "Statut",
+                    (
+                        "Active"
+                        if assurance.actif
+                        else "Inactive"
+                    ),
+                ),
+                (
+                    "Observations",
+                    assurance.observations
+                    or "---",
+                ),
+            ]
+
+            for ligne, (
+                titre,
+                valeur,
+            ) in enumerate(donnees):
+
+                label_titre = QLabel(titre)
+
+                label_titre.setStyleSheet(
+                    "font-weight: bold;"
+                )
+
+                label_valeur = QLabel(
+                    str(valeur)
+                )
+
+                label_valeur.setWordWrap(
+                    True
+                )
+
+                carte_layout.addWidget(
+                    label_titre,
+                    ligne,
+                    0,
+                )
+
+                carte_layout.addWidget(
+                    label_valeur,
+                    ligne,
+                    1,
+                )
 
             layout.addWidget(
-                label_titre,
-                ligne,
-                0,
+                carte
             )
 
-            layout.addWidget(
-                label_valeur,
-                ligne,
-                1,
-            )
-
-        layout.setColumnStretch(1, 1)
+        layout.addStretch()
 
         return widget
+
+    # =====================================================
+    # Ajouter assurance
+    # =====================================================
+
+    def ajouter_assurance(self):
+
+        if self.patient is None:
+            return
+
+        dialog = PatientInsuranceDialog(
+            patient=self.patient,
+            parent=self,
+        )
+
+        if not dialog.exec():
+            return
+
+        assurance = (
+            dialog.obtenir_assurance()
+        )
+
+        session = object_session(
+            self.patient
+        )
+
+        if session is None:
+            return
+
+        session.add(
+            assurance
+        )
+
+        session.commit()
+
+        session.refresh(
+            self.patient
+        )
+
+        nouvelle_fiche = self.__class__(
+            patient=self.patient
+        )
+
+        self._nouvelle_fiche = (
+            nouvelle_fiche
+        )
+
+        nouvelle_fiche.show()
+
+        self.close()
 
     # =====================================================
     # Contacts
@@ -604,10 +718,6 @@ class PatientProfile(BaseWindow):
 
         layout = QVBoxLayout(widget)
         layout.setSpacing(12)
-
-        # -------------------------------------------------
-        # Bouton ajouter
-        # -------------------------------------------------
 
         btn_ajouter = QPushButton(
             "➕ Ajouter contact"
@@ -632,10 +742,6 @@ class PatientProfile(BaseWindow):
                 )
             )
 
-        # -------------------------------------------------
-        # Aucun contact
-        # -------------------------------------------------
-
         if not contacts:
 
             label = QLabel(
@@ -655,10 +761,6 @@ class PatientProfile(BaseWindow):
             layout.addStretch()
 
             return widget
-
-        # -------------------------------------------------
-        # Contacts
-        # -------------------------------------------------
 
         for contact in contacts:
 
@@ -750,7 +852,9 @@ class PatientProfile(BaseWindow):
                     indication
                 )
 
-            layout.addWidget(carte)
+            layout.addWidget(
+                carte
+            )
 
         layout.addStretch()
 
@@ -773,7 +877,9 @@ class PatientProfile(BaseWindow):
         if not dialog.exec():
             return
 
-        contact = dialog.obtenir_contact()
+        contact = (
+            dialog.obtenir_contact()
+        )
 
         session = object_session(
             self.patient
@@ -782,7 +888,10 @@ class PatientProfile(BaseWindow):
         if session is None:
             return
 
-        session.add(contact)
+        session.add(
+            contact
+        )
+
         session.commit()
 
         session.refresh(
@@ -793,14 +902,16 @@ class PatientProfile(BaseWindow):
             patient=self.patient
         )
 
-        self._nouvelle_fiche = nouvelle_fiche
+        self._nouvelle_fiche = (
+            nouvelle_fiche
+        )
 
         nouvelle_fiche.show()
 
         self.close()
 
     # =====================================================
-    # Sections
+    # Autres sections
     # =====================================================
 
     def creer_clinique(self):
